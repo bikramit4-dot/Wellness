@@ -1,0 +1,1706 @@
+<?php
+class AdminController extends Controller
+{
+    private const ALLOWED_STATUSES = ['new', 'confirmed', 'completed'];
+
+    /**
+     * Content sections manageable from /admin/content/*.
+     * Each section maps a URL key to a model + CRUD methods + admin UI
+     * configuration (list columns and form fields).
+     */
+    private const SECTIONS = [
+        'gallery' => [
+            'label' => 'Gallery',
+            'plural' => 'Gallery Items',
+            'icon' => 'icon-sun',
+            'model' => GalleryModel::class,
+            'all' => 'all',
+            'find' => 'find',
+            'save' => 'save',
+            'delete' => 'delete',
+            'listColumns' => [
+                ['key' => 'title', 'label' => 'Title'],
+                ['key' => 'image', 'label' => 'Image', 'type' => 'image'],
+                ['key' => 'sort_order', 'label' => 'Order'],
+            ],
+            'fields' => [
+                ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
+                ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'alt', 'label' => 'Alt text', 'type' => 'text', 'hint' => 'Accessible description of the image.'],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number', 'hint' => 'Lower numbers appear first.'],
+            ],
+        ],
+        'testimonials' => [
+            'label' => 'Testimonials',
+            'plural' => 'Testimonials',
+            'icon' => 'icon-star',
+            'model' => TestimonialModel::class,
+            'all' => 'all',
+            'find' => 'find',
+            'save' => 'save',
+            'delete' => 'delete',
+            'listColumns' => [
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'role', 'label' => 'Role'],
+                ['key' => 'rating', 'label' => 'Rating', 'type' => 'rating'],
+            ],
+            'fields' => [
+                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
+                ['name' => 'role', 'label' => 'Role / Program', 'type' => 'text', 'hint' => 'e.g. Physiotherapy Patient'],
+                ['name' => 'initials', 'label' => 'Initials (avatar)', 'type' => 'text', 'hint' => 'e.g. SP'],
+                ['name' => 'avatar', 'label' => 'Avatar color', 'type' => 'select', 'options' => ['a1', 'a2', 'a3', 'a4', 'a5', 'a6']],
+                ['name' => 'rating', 'label' => 'Rating (1–5)', 'type' => 'number'],
+                ['name' => 'quote', 'label' => 'Quote', 'type' => 'textarea', 'required' => true],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'team' => [
+            'label' => 'Team',
+            'plural' => 'Team Members',
+            'icon' => 'icon-users',
+            'model' => TeamModel::class,
+            'all' => 'all',
+            'find' => 'find',
+            'save' => 'save',
+            'delete' => 'delete',
+            'listColumns' => [
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'role', 'label' => 'Role'],
+            ],
+            'fields' => [
+                ['name' => 'name', 'label' => 'Full name', 'type' => 'text', 'required' => true],
+                ['name' => 'role', 'label' => 'Role / Title', 'type' => 'text', 'required' => true],
+                ['name' => 'initials', 'label' => 'Initials (avatar)', 'type' => 'text', 'hint' => 'e.g. RS'],
+                ['name' => 'avatar', 'label' => 'Avatar color', 'type' => 'select', 'options' => ['a1', 'a2', 'a3', 'a4', 'a5', 'a6']],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'plans' => [
+            'label' => 'Tariff Plans',
+            'plural' => 'Plans',
+            'icon' => 'icon-heart',
+            'model' => TariffModel::class,
+            'all' => 'allPlans',
+            'find' => 'findPlan',
+            'save' => 'savePlan',
+            'delete' => 'deletePlan',
+            'listColumns' => [
+                ['key' => 'name', 'label' => 'Plan'],
+                ['key' => 'price', 'label' => 'Price'],
+                ['key' => 'featured', 'label' => 'Featured', 'type' => 'bool'],
+            ],
+            'fields' => [
+                ['name' => 'name', 'label' => 'Plan name', 'type' => 'text', 'required' => true],
+                ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
+                ['name' => 'price', 'label' => 'Price', 'type' => 'text', 'hint' => 'e.g. $140'],
+                ['name' => 'period', 'label' => 'Period', 'type' => 'text', 'hint' => 'e.g. session, week, month'],
+                ['name' => 'features', 'label' => 'Features', 'type' => 'list', 'hint' => 'One feature per line.'],
+                ['name' => 'featured', 'label' => 'Featured plan', 'type' => 'checkbox', 'hint' => 'Highlighted card with accent styling.'],
+                ['name' => 'badge', 'label' => 'Badge text', 'type' => 'text', 'hint' => 'e.g. Most Popular (leave empty for none).'],
+                ['name' => 'cta_label', 'label' => 'Button label', 'type' => 'text', 'hint' => 'e.g. Book the Retreat'],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'services' => [
+            'label' => 'Service Prices',
+            'plural' => 'Services',
+            'icon' => 'icon-clock',
+            'model' => TariffModel::class,
+            'all' => 'allServices',
+            'find' => 'findService',
+            'save' => 'saveService',
+            'delete' => 'deleteService',
+            'listColumns' => [
+                ['key' => 'service', 'label' => 'Service'],
+                ['key' => 'duration', 'label' => 'Duration'],
+                ['key' => 'price', 'label' => 'Price'],
+            ],
+            'fields' => [
+                ['name' => 'service', 'label' => 'Service name', 'type' => 'text', 'required' => true],
+                ['name' => 'duration', 'label' => 'Duration', 'type' => 'text', 'hint' => 'e.g. 1 Hour'],
+                ['name' => 'price', 'label' => 'Price', 'type' => 'text', 'hint' => 'e.g. $25'],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'features' => [
+            'label' => 'Why Choose Us',
+            'plural' => 'Feature Cards',
+            'icon' => 'icon-heart',
+            'model' => FeatureModel::class,
+            'all' => 'all',
+            'find' => 'find',
+            'save' => 'save',
+            'delete' => 'delete',
+            'listColumns' => [
+                ['key' => 'title', 'label' => 'Title'],
+                ['key' => 'image', 'label' => 'Image', 'type' => 'image'],
+                ['key' => 'sort_order', 'label' => 'Order'],
+            ],
+            'fields' => [
+                ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
+                ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'icon', 'label' => 'Icon', 'type' => 'select', 'options' => ['icon-users', 'icon-heart', 'icon-leaf', 'icon-shield', 'icon-sun', 'icon-moon', 'icon-activity', 'icon-droplet', 'icon-zap', 'icon-clock']],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'offers' => [
+            'label' => 'What We Offer',
+            'plural' => 'Offer Cards',
+            'icon' => 'icon-zap',
+            'model' => OfferModel::class,
+            'all' => 'all',
+            'find' => 'find',
+            'save' => 'save',
+            'delete' => 'delete',
+            'listColumns' => [
+                ['key' => 'title', 'label' => 'Title'],
+                ['key' => 'image', 'label' => 'Image', 'type' => 'image'],
+                ['key' => 'sort_order', 'label' => 'Order'],
+            ],
+            'fields' => [
+                ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
+                ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'icon', 'label' => 'Icon', 'type' => 'select', 'options' => ['icon-users', 'icon-heart', 'icon-leaf', 'icon-shield', 'icon-sun', 'icon-moon', 'icon-activity', 'icon-droplet', 'icon-zap', 'icon-clock']],
+                ['name' => 'link', 'label' => 'Page link', 'type' => 'text', 'hint' => 'Where the card links to, e.g. /treatments/naturopathy (defaults to /treatments).'],
+                ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+    ];
+
+    /**
+     * Editable page sections, grouped by page. Each page lists its sections
+     * and each section lists its editable fields. Field names map directly to
+     * columns of the `page_sections` table; type 'list' renders a one-per-line
+     * textarea stored as a JSON array in `extras`.
+     */
+    private const PAGE_SECTIONS = [
+        'site' => [
+            'label' => 'Site Settings',
+            'url' => '/',
+            'sections' => [
+                'brand' => [
+                    'label' => 'Logo & Brand',
+                    'fields' => [
+                        ['name' => 'image', 'label' => 'Logo image', 'type' => 'image', 'hint' => 'Upload your logo (or paste an image URL). Leave empty to keep the leaf icon + name.'],
+                        ['name' => 'heading', 'label' => 'Brand name', 'type' => 'text', 'hint' => 'Shown next to the logo, e.g. Harmony Wellness'],
+                    ],
+                ],
+                'footer' => [
+                    'label' => 'Footer Information',
+                    'fields' => [
+                        ['name' => 'content', 'label' => 'Footer tagline', 'type' => 'textarea', 'hint' => 'Short description shown under the brand in the footer.'],
+                        ['name' => 'heading', 'label' => 'Address', 'type' => 'text'],
+                        ['name' => 'sub_content', 'label' => 'Email', 'type' => 'text'],
+                        ['name' => 'link', 'label' => 'Phone', 'type' => 'text', 'hint' => 'e.g. +977-9800000000'],
+                        ['name' => 'kicker', 'label' => 'Opening hours', 'type' => 'textarea', 'hint' => 'One line per period — each line appears on its own row.'],
+                        ['name' => 'link_label', 'label' => 'Copyright tagline', 'type' => 'text', 'hint' => 'Small text beside the © copyright line.'],
+                        ['name' => 'extras', 'label' => 'Social links', 'type' => 'list', 'hint' => 'One per line, format: Label | URL — e.g. Facebook | https://facebook.com/yourpage'],
+                    ],
+                ],
+            ],
+        ],
+        'home' => [
+            'label' => 'Home',
+            'url' => '/',
+            'sections' => [
+                'hero' => [
+                    'label' => 'Hero Banner',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Eyebrow text', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Main heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Subtitle paragraph', 'type' => 'textarea'],
+                        ['name' => 'sub_content', 'label' => 'Rating line', 'type' => 'text', 'hint' => 'e.g. 4.9/5 rated by 1,200+ happy patients'],
+                        ['name' => 'media', 'label' => 'Background video file', 'type' => 'text', 'hint' => 'File name inside public/uploads/, e.g. Olive and White Modern Spa and Wellness Banner Landscape.mp4'],
+                        ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style (primary, light, dark, outline)'],
+                    ],
+                ],
+                'stats' => [
+                    'label' => 'Stats Band',
+                    'fields' => [
+                        ['name' => 'extras', 'label' => 'Stats', 'type' => 'list', 'required' => true, 'hint' => 'One per line, format: Value | Label, e.g. 15+ | Years of Experience'],
+                    ],
+                ],
+                'about_intro' => [
+                    'label' => 'About Intro',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                        ['name' => 'sub_content', 'label' => 'Badge', 'type' => 'text', 'hint' => 'Format: Title | Text, e.g. Since 2010 | Healing with care & compassion'],
+                        ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                        ['name' => 'link', 'label' => 'Button link', 'type' => 'text'],
+                        ['name' => 'link_label', 'label' => 'Button label', 'type' => 'text'],
+                        ['name' => 'extras', 'label' => 'Checklist items', 'type' => 'list', 'hint' => 'One item per line.'],
+                    ],
+                ],
+                'why' => [
+                    'label' => 'Why Choose Us heading',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ],
+                ],
+                'offers' => [
+                    'label' => 'What We Offer heading',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ],
+                ],
+                'testimonials' => [
+                    'label' => 'Testimonials heading',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ],
+                ],
+                'story' => [
+                    'label' => 'Our Story',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Paragraphs', 'type' => 'textarea', 'hint' => 'Separate paragraphs with a blank line.'],
+                        ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                        ['name' => 'link', 'label' => 'Button link', 'type' => 'text'],
+                        ['name' => 'link_label', 'label' => 'Button label', 'type' => 'text'],
+                        ['name' => 'extras', 'label' => 'Highlight points', 'type' => 'list', 'hint' => 'One point per line.'],
+                    ],
+                ],
+                'cta' => [
+                    'label' => 'CTA Banner',
+                    'fields' => [
+                        ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                        ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                        ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                        ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style (primary, light, dark, outline)'],
+                    ],
+                ],
+            ],
+        ],
+        'about' => [
+            'label' => 'About',
+            'url' => '/about',
+            'sections' => [
+                'hero' => ['label' => 'Page Heading', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+                ]],
+                'founder' => ['label' => '01 · Founder', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'sub_content', 'label' => 'Name + role', 'type' => 'text', 'hint' => 'Format: Name | Role'],
+                    ['name' => 'content', 'label' => 'Bio', 'type' => 'textarea'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                ]],
+                'approach' => ['label' => '02 · Our Approach', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'Checklist items', 'type' => 'list'],
+                ]],
+                'doctors' => ['label' => '03 · Our Doctors', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ['name' => 'extras', 'label' => 'Specialist cards', 'type' => 'list', 'hint' => 'One per line, format: Title | Description | icon | image URL'],
+                ]],
+                'vision' => ['label' => '04 · Our Vision', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'Card', 'type' => 'list', 'hint' => 'One line, format: Title | Text | icon'],
+                ]],
+                'mission' => ['label' => '05 · Our Mission', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ['name' => 'sub_content', 'label' => 'Card title', 'type' => 'text'],
+                    ['name' => 'extras', 'label' => 'Commitments list', 'type' => 'list'],
+                ]],
+                'group' => ['label' => '06 · Our Group', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                ]],
+                'cta' => ['label' => 'CTA Banner', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                    ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style'],
+                ]],
+            ],
+        ],
+        'contact' => [
+            'label' => 'Contact',
+            'url' => '/contact',
+            'sections' => [
+                'hero' => ['label' => 'Page Heading', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+                ]],
+                'info' => ['label' => 'Contact Information', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'extras', 'label' => 'Info items', 'type' => 'list', 'required' => true, 'hint' => 'One per line, format: Label | Value. Lines: Our Address, Phone, Email, Opening Hours.'],
+                ]],
+                'form' => ['label' => 'Booking Form', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro line', 'type' => 'textarea'],
+                ]],
+                'map' => ['label' => 'Map / Location', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ['name' => 'link', 'label' => 'Map query', 'type' => 'text', 'hint' => 'Address used in the Google Maps embed, e.g. Harmony Wellness Center, Kathmandu, Nepal'],
+                ]],
+            ],
+        ],
+        'treatments' => ['label' => 'Treatments', 'url' => '/treatments', 'sections' => self::LIST_PAGE_SECTIONS],
+        'physiotherapy' => ['label' => 'Physiotherapy', 'url' => '/physiotherapy', 'sections' => self::LIST_PAGE_SECTIONS],
+        'diet' => ['label' => 'Diet Therapy', 'url' => '/diet-therapy', 'sections' => self::LIST_PAGE_SECTIONS],
+        'special' => ['label' => 'Special Therapies', 'url' => '/special-therapies', 'sections' => self::LIST_PAGE_SECTIONS],
+        'tariff' => [
+            'label' => 'Tariff',
+            'url' => '/tariff',
+            'sections' => [
+                'hero' => ['label' => 'Page Heading', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+                ]],
+                'packages' => ['label' => 'Packages heading', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                ]],
+                'services' => ['label' => 'Service prices heading', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ['name' => 'sub_content', 'label' => 'Footnote', 'type' => 'textarea'],
+                ]],
+            ],
+        ],
+        'gallery' => [
+            'label' => 'Gallery',
+            'url' => '/gallery',
+            'sections' => [
+                'hero' => ['label' => 'Page Heading', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+                ]],
+            ],
+        ],
+        'blog' => [
+            'label' => 'Blog',
+            'url' => '/blog',
+            'sections' => [
+                'hero' => ['label' => 'Page Heading', 'fields' => [
+                    ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+                ]],
+                'cta' => ['label' => 'CTA Banner', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                    ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style'],
+                ]],
+            ],
+        ],
+        'therapy' => ['label' => 'Therapy Detail', 'url' => '/treatments', 'sections' => [
+            'cta' => ['label' => 'CTA Banner', 'fields' => [
+                ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                ['name' => 'heading', 'label' => 'Heading', 'type' => 'text', 'hint' => 'Use {title} to insert the therapy name, e.g. Begin Your {title} Journey'],
+                ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style'],
+            ]],
+        ]],
+        'post' => ['label' => 'Blog Article', 'url' => '/blog', 'sections' => [
+            'cta' => ['label' => 'CTA Banner', 'fields' => [
+                ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style'],
+            ]],
+        ]],
+    ];
+
+    private const LIST_PAGE_SECTIONS = [
+        'hero' => ['label' => 'Page Heading', 'fields' => [
+            ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
+            ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
+        ]],
+        'cta' => ['label' => 'CTA Banner', 'fields' => [
+            ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+            ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+            ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+            ['name' => 'extras', 'label' => 'Buttons', 'type' => 'list', 'hint' => 'One per line, format: Label | URL | style'],
+        ]],
+    ];
+
+    private function requireAuth(): void
+    {
+        if (empty($_SESSION['admin_logged_in'])) {
+            $this->redirect('/admin/login');
+            return;
+        }
+
+        // Hard server-side idle timeout: if the session has been inactive
+        // longer than ADMIN_SESSION_TIMEOUT, sign out (backstop for the
+        // client-side screen lock, or when the lock is bypassed).
+        $timeout = defined('ADMIN_SESSION_TIMEOUT') ? (int) ADMIN_SESSION_TIMEOUT : 1800;
+        $lastActivity = (int) ($_SESSION['admin_last_activity'] ?? 0);
+        if ($lastActivity > 0 && time() - $lastActivity > $timeout) {
+            unset($_SESSION['admin_logged_in'], $_SESSION['admin_username'], $_SESSION['admin_display_name'], $_SESSION['admin_last_activity']);
+            session_regenerate_id(true);
+            $this->setFlash('danger', 'Your session expired after inactivity. Please sign in again.');
+            $this->redirect('/admin/login');
+            return;
+        }
+
+        $_SESSION['admin_last_activity'] = time();
+    }
+
+    /**
+     * Re-authenticate after the client-side screen lock.
+     * POST only: verifies the current user's password and resets the idle
+     * clock. Returns JSON so the lock overlay can resume in place.
+     */
+    public function unlock(): void
+    {
+        if (empty($_SESSION['admin_logged_in'])) {
+            $this->json(['ok' => false, 'message' => 'Session expired. Please sign in again.']);
+            return;
+        }
+
+        if (!$this->requireValidCsrf()) {
+            $this->json(['ok' => false, 'message' => 'Invalid security token.']);
+            return;
+        }
+
+        $username = strtolower((string) ($_SESSION['admin_username'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+
+        if ($username === '' || !$this->credentialsValid($username, $password)) {
+            $this->json(['ok' => false, 'message' => 'Incorrect password.']);
+            return;
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['admin_last_activity'] = time();
+        $this->json(['ok' => true]);
+    }
+
+    private function json(array $data): void
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+    }
+
+    private function requireValidCsrf(): bool
+    {
+        return isset($_POST['csrf_token']) && Security::validateCsrf($_POST['csrf_token']);
+    }
+
+    /* ---------- Authentication ---------- */
+
+    public function showLogin(): void
+    {
+        if (!empty($_SESSION['admin_logged_in'])) {
+            $this->redirect('/admin');
+        }
+
+        $this->render('admin/login', [
+            'title' => 'Admin Login',
+            'layout' => 'admin',
+        ]);
+    }
+
+    public function login(): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token. Please try again.');
+            $this->redirect('/admin/login');
+        }
+
+        // Brute-force protection: after 5 failed attempts from one IP,
+        // lock that IP out for 5 minutes.
+        $ip = $this->clientIp();
+        $remaining = $this->lockoutRemaining($ip);
+        if ($remaining > 0) {
+            $minutes = max(1, (int) ceil($remaining / 60));
+            $this->setFlash('danger', 'Too many failed attempts. Try again in about ' . $minutes . ' minute(s).');
+            $this->redirect('/admin/login');
+        }
+
+        $username = strtolower(Security::sanitizeText($_POST['username'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+
+        if (!$this->credentialsValid($username, $password)) {
+            $this->recordFailedAttempt($ip);
+            if ($this->lockoutRemaining($ip) > 0) {
+                $this->setFlash('danger', 'Too many failed attempts. Please wait a few minutes and try again.');
+            } else {
+                $left = max(0, 5 - (int) ($this->readAttempts()[$ip]['count'] ?? 0));
+                $this->setFlash('danger', 'Invalid username or password.' . ($left > 0 ? ' ' . $left . ' attempt(s) left.' : ''));
+            }
+            $this->redirect('/admin/login');
+        }
+
+        $this->clearAttempts($ip);
+        session_regenerate_id(true);
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_username'] = $username;
+        $_SESSION['admin_last_activity'] = time();
+
+        // Show the display name (if set) in the admin header.
+        $dbUser = AdminUserModel::findByUsername($username);
+        $_SESSION['admin_display_name'] = ($dbUser !== null && trim((string) ($dbUser['display_name'] ?? '')) !== '')
+            ? trim((string) $dbUser['display_name'])
+            : $username;
+
+        $this->setFlash('success', 'Welcome back, ' . $username . '!');
+        $this->redirect('/admin');
+    }
+
+    /**
+     * Verify the admin username + password against the `admin_users` table
+     * first, then fall back to ADMIN_USERNAME / ADMIN_PASSWORD_HASH from
+     * config.php (which always works, even if the database is unavailable).
+     */
+    private function credentialsValid(string $username, string $password): bool
+    {
+        $password = trim($password);
+
+        // Database users (managed from Admin → Users).
+        $dbUser = AdminUserModel::findByUsername($username);
+        if ($dbUser !== null && password_verify($password, (string) ($dbUser['password_hash'] ?? ''))) {
+            return true;
+        }
+
+        // Fallback: the original config-defined admin.
+        $expectedUser = defined('ADMIN_USERNAME') ? strtolower(trim((string) ADMIN_USERNAME)) : '';
+        $userOk = $expectedUser !== '' && hash_equals($expectedUser, strtolower(trim($username)));
+
+        $hash = defined('ADMIN_PASSWORD_HASH') ? ADMIN_PASSWORD_HASH : '';
+        $passOk = $hash !== '' && password_verify($password, $hash);
+
+        // Always run a verify (even when the username is wrong) so response
+        // timing cannot reveal which field was incorrect.
+        if (!$userOk) {
+            password_verify($password, $hash !== '' ? $hash : '$2y$12$rN9fY4vX1dKpQmWcT0nE7uL2sBzHj8gQaR6tY0eW5nIuM3pVbCzXaK');
+        }
+
+        return $userOk && $passOk;
+    }
+
+    /* ---------- Brute-force protection (IP-based) ---------- */
+
+    private function clientIp(): string
+    {
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    }
+
+    private function attemptLogFile(): string
+    {
+        return APP_ROOT . '/storage/login_attempts.json';
+    }
+
+    /**
+     * @return array<string, array{count: int, locked_until: int, last_attempt: int}>
+     */
+    private function readAttempts(): array
+    {
+        $file = $this->attemptLogFile();
+        if (!is_file($file)) {
+            return [];
+        }
+        $data = json_decode((string) file_get_contents($file), true);
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Seconds remaining in the lockout for this IP, or 0 if not blocked.
+     */
+    private function lockoutRemaining(string $ip): int
+    {
+        $data = $this->readAttempts();
+        $remaining = (int) ($data[$ip]['locked_until'] ?? 0) - time();
+
+        return $remaining > 0 ? $remaining : 0;
+    }
+
+    private function recordFailedAttempt(string $ip): void
+    {
+        $data = $this->readAttempts();
+        $entry = $data[$ip] ?? ['count' => 0, 'locked_until' => 0, 'last_attempt' => 0];
+        $entry['count'] = (int) $entry['count'] + 1;
+        $entry['last_attempt'] = time();
+        if ($entry['count'] >= 5) {
+            $entry['locked_until'] = time() + 300; // 5 minute lockout
+            $entry['count'] = 0;
+        }
+        $data[$ip] = $entry;
+
+        // Drop entries that have been idle for over a day AND are not
+        // currently locked, so the log never grows forever.
+        $now = time();
+        foreach ($data as $key => $e) {
+            $idle = $now - (int) ($e['last_attempt'] ?? 0);
+            $lockedUntil = (int) ($e['locked_until'] ?? 0);
+            if ($idle > 86400 && $lockedUntil < $now) {
+                unset($data[$key]);
+            }
+        }
+
+        @file_put_contents($this->attemptLogFile(), json_encode($data), LOCK_EX);
+    }
+
+    private function clearAttempts(string $ip): void
+    {
+        $data = $this->readAttempts();
+        unset($data[$ip]);
+        if ($data === []) {
+            @unlink($this->attemptLogFile());
+        } else {
+            @file_put_contents($this->attemptLogFile(), json_encode($data), LOCK_EX);
+        }
+    }
+
+    /* ---------- Change password ---------- */
+
+    public function showPassword(): void
+    {
+        $this->requireAuth();
+
+        $this->render('admin/password', [
+            'title' => 'Change Password',
+            'layout' => 'admin',
+            'csrf' => Security::csrfToken(),
+            'users' => AdminUserModel::all(),
+        ]);
+    }
+
+    public function updatePassword(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/password');
+        }
+
+        $current = (string) ($_POST['current_password'] ?? '');
+        $new = (string) ($_POST['new_password'] ?? '');
+        $confirm = (string) ($_POST['confirm_password'] ?? '');
+        $username = (string) ($_SESSION['admin_username'] ?? ADMIN_USERNAME);
+
+        if (!$this->credentialsValid($username, $current)) {
+            $this->setFlash('danger', 'Your current password is incorrect.');
+            $this->redirect('/admin/password');
+        }
+        if (strlen($new) < 8) {
+            $this->setFlash('danger', 'The new password must be at least 8 characters.');
+            $this->redirect('/admin/password');
+        }
+        if (!hash_equals($new, $confirm)) {
+            $this->setFlash('danger', 'The new passwords do not match.');
+            $this->redirect('/admin/password');
+        }
+
+        $file = APP_ROOT . '/app/config/config.php';
+        if (!is_writable($file)) {
+            $this->setFlash('danger', 'The config file is not writable. Use: php app/scripts/admin-password.php "NewPassword"');
+            $this->redirect('/admin/password');
+        }
+
+        $newHash = password_hash($new, PASSWORD_DEFAULT);
+        $content = (string) file_get_contents($file);
+
+        // The pattern expects the ADMIN_PASSWORD_HASH define to stay on one line.
+        if (preg_match("/define\('ADMIN_PASSWORD_HASH',\s*'[^']*'\);/", $content, $m)) {
+            $newContent = str_replace($m[0], "define('ADMIN_PASSWORD_HASH', '" . $newHash . "');", $content);
+
+            // Sanity check before touching the file: new hash present + valid PHP.
+            if (strpos($newContent, $newHash) === false || !$this->isValidPhp($newContent)) {
+                $this->setFlash('danger', 'Refusing to write an invalid config file. Use the CLI script instead.');
+                $this->redirect('/admin/password');
+            }
+
+            // Atomic write (temp file + rename) so a crash can never leave a
+            // truncated config.php, then drop any cached bytecode of the old file.
+            $tmp = $file . '.tmp';
+            if (@file_put_contents($tmp, $newContent, LOCK_EX) !== false && @rename($tmp, $file)) {
+                if (function_exists('opcache_invalidate')) {
+                    @opcache_invalidate($file, true);
+                }
+                $this->setFlash('success', 'Password updated. Use it on your next login.');
+                $this->redirect('/admin');
+                return;
+            }
+            @unlink($tmp);
+        }
+
+        $this->setFlash('danger', 'Could not update the password file. Use the CLI script instead.');
+        $this->redirect('/admin/password');
+    }
+
+    /**
+     * Best-effort PHP syntax check (skipped when exec() is unavailable).
+     */
+    private function isValidPhp(string $code): bool
+    {
+        if (!function_exists('exec')) {
+            return true;
+        }
+
+        $tmp = tempnam(sys_get_temp_dir(), 'wlphp');
+        if ($tmp === false) {
+            return true;
+        }
+        @file_put_contents($tmp, $code);
+        @exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $exitCode);
+        @unlink($tmp);
+
+        return $exitCode === 0;
+    }
+
+    public function logout(): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/login');
+        }
+
+        unset($_SESSION['admin_logged_in'], $_SESSION['admin_username'], $_SESSION['admin_display_name'], $_SESSION['admin_last_activity']);
+        session_regenerate_id(true);
+
+        $this->setFlash('success', 'You have been logged out.');
+        $this->redirect('/admin/login');
+    }
+
+    /* ---------- Dashboard overview ---------- */
+
+    public function dashboard(): void
+    {
+        $this->requireAuth();
+
+        $appointments = (new AppointmentModel())->all();
+        $counts = $this->statusCounts($appointments);
+
+        $week = 0;
+        $prevWeek = 0;
+        $treatmentCounts = [];
+        $weekStart = strtotime('-7 days');
+        $prevWeekStart = strtotime('-14 days');
+
+        // Per-day booking counts for the last 7 days (oldest first) so the
+        // dashboard can draw a small activity chart.
+        $activity = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $day = strtotime('-' . $i . ' days');
+            $activity[date('Y-m-d', $day)] = [
+                'label' => date('D', $day),
+                'count' => 0,
+                'pct' => 0,
+            ];
+        }
+
+        foreach ($appointments as $a) {
+            $created = strtotime((string) ($a['created_at'] ?? ''));
+            if ($created !== false) {
+                if ($created >= $weekStart) {
+                    $week++;
+                }
+                if ($created >= $prevWeekStart && $created < $weekStart) {
+                    $prevWeek++;
+                }
+
+                $dayKey = date('Y-m-d', $created);
+                if (isset($activity[$dayKey])) {
+                    $activity[$dayKey]['count']++;
+                }
+            }
+
+            $treatment = trim((string) ($a['treatment'] ?? ''));
+            if ($treatment !== '') {
+                $treatmentCounts[$treatment] = ($treatmentCounts[$treatment] ?? 0) + 1;
+            }
+        }
+
+        // Scale bars relative to the busiest day in the window.
+        $maxActivity = 0;
+        foreach ($activity as $day) {
+            $maxActivity = max($maxActivity, (int) $day['count']);
+        }
+        foreach ($activity as $dayKey => $day) {
+            $activity[$dayKey]['pct'] = $maxActivity > 0
+                ? (int) round($day['count'] / $maxActivity * 100)
+                : 0;
+        }
+
+        arsort($treatmentCounts);
+        $popularTreatments = array_slice($treatmentCounts, 0, 3, true);
+
+        $this->render('admin/dashboard', [
+            'title' => 'Dashboard',
+            'layout' => 'admin',
+            'counts' => $counts,
+            'week' => $week,
+            'weekDelta' => $week - $prevWeek,
+            'activity' => array_values($activity),
+            'popularTreatments' => $popularTreatments,
+            'recentAppointments' => array_slice($appointments, 0, 6),
+            'sections' => $this->sectionSummaries(),
+        ]);
+    }
+
+    /* ---------- Appointments (full list) ---------- */
+
+    public function appointments(): void
+    {
+        $this->requireAuth();
+
+        $model = new AppointmentModel();
+        $appointments = $model->all();
+
+        $filter = Security::sanitizeText($_GET['status'] ?? '');
+        if (!in_array($filter, self::ALLOWED_STATUSES, true)) {
+            $filter = '';
+        }
+
+        $viewAppointments = $filter === ''
+            ? $appointments
+            : array_values(array_filter(
+                $appointments,
+                static fn (array $a): bool => ($a['status'] ?? 'new') === $filter
+            ));
+
+        $this->render('admin/appointments', [
+            'title' => 'Appointments',
+            'layout' => 'admin',
+            'appointments' => $viewAppointments,
+            'counts' => $this->statusCounts($appointments),
+            'filter' => $filter,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $appointments
+     * @return array{total: int, new: int, confirmed: int, completed: int}
+     */
+    private function statusCounts(array $appointments): array
+    {
+        $counts = [
+            'total' => count($appointments),
+            'new' => 0,
+            'confirmed' => 0,
+            'completed' => 0,
+        ];
+        foreach ($appointments as $a) {
+            $status = $a['status'] ?? 'new';
+            if (isset($counts[$status])) {
+                $counts[$status]++;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return array<string, array{label: string, icon: string, count: int}>
+     */
+    private function sectionSummaries(): array
+    {
+        $sections = [];
+        foreach (self::SECTIONS as $key => $section) {
+            $sections[$key] = [
+                'label' => $section['label'],
+                'icon' => $section['icon'],
+                'count' => count(call_user_func([$section['model'], $section['all']], false)),
+            ];
+        }
+
+        return $sections;
+    }
+
+    /* ---------- Content management ---------- */
+
+    /**
+     * Dispatch /admin/content/* requests.
+     * Routes:  /admin/content                → overview
+     *          /admin/content/{section}      → list
+     *          /admin/content/{section}/new  → create form
+     *          /admin/content/{section}/edit → edit form (?id=N)
+     *          /admin/content/{section}/save → POST create/update
+     *          /admin/content/{section}/delete → POST delete
+     */
+    public function content(string $method, string $path): void
+    {
+        $this->requireAuth();
+
+        $rest = trim(substr($path, strlen('/admin/content')), '/');
+        $segments = $rest === '' ? [] : explode('/', $rest);
+
+        $sectionKey = $segments[0] ?? '';
+        $sub = $segments[1] ?? '';
+
+        if ($sectionKey === '') {
+            $this->contentOverview();
+            return;
+        }
+
+        if (!isset(self::SECTIONS[$sectionKey])) {
+            $this->setFlash('danger', 'Unknown content section.');
+            $this->redirect('/admin/content');
+            return;
+        }
+
+        $section = self::SECTIONS[$sectionKey];
+
+        switch ($sub) {
+            case '':
+                if ($method === 'GET') {
+                    $this->contentList($sectionKey, $section);
+                    return;
+                }
+                break;
+            case 'new':
+                if ($method === 'GET') {
+                    $this->contentForm($sectionKey, $section, false);
+                    return;
+                }
+                break;
+            case 'edit':
+                if ($method === 'GET') {
+                    $this->contentForm($sectionKey, $section, true);
+                    return;
+                }
+                break;
+            case 'save':
+                if ($method === 'POST') {
+                    $this->saveContent($sectionKey, $section);
+                    return;
+                }
+                break;
+            case 'delete':
+                if ($method === 'POST') {
+                    $this->deleteContent($sectionKey, $section);
+                    return;
+                }
+                break;
+        }
+
+        $this->setFlash('danger', 'Invalid request.');
+        $this->redirect('/admin/content/' . $sectionKey);
+    }
+
+    private function contentOverview(): void
+    {
+        $this->render('admin/content', [
+            'title' => 'Content',
+            'layout' => 'admin',
+            'sections' => $this->sectionSummaries(),
+        ]);
+    }
+
+    private function contentList(string $key, array $section): void
+    {
+        $items = call_user_func([$section['model'], $section['all']], false);
+
+        $this->render('admin/content_list', [
+            'title' => $section['plural'],
+            'layout' => 'admin',
+            'sectionKey' => $key,
+            'section' => $section,
+            'items' => $items,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function contentForm(string $key, array $section, bool $isEdit): void
+    {
+        $item = null;
+        if ($isEdit) {
+            $id = (int) ($_GET['id'] ?? 0);
+            $item = $id > 0 ? call_user_func([$section['model'], $section['find']], $id) : null;
+            if ($item === null) {
+                $this->setFlash('danger', 'Item not found.');
+                $this->redirect('/admin/content/' . $key);
+                return;
+            }
+        }
+
+        $this->render('admin/content_form', [
+            'title' => ($isEdit ? 'Edit ' : 'Add ') . $section['label'],
+            'layout' => 'admin',
+            'sectionKey' => $key,
+            'section' => $section,
+            'item' => $item,
+            'isEdit' => $isEdit,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function saveContent(string $key, array $section): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token. Please try again.');
+            $this->redirect('/admin/content/' . $key);
+            return;
+        }
+
+        $data = [];
+        $errors = [];
+        $replacedImage = null;
+
+        foreach ($section['fields'] as $field) {
+            $name = $field['name'];
+            $type = $field['type'] ?? 'text';
+
+            switch ($type) {
+                case 'checkbox':
+                    $data[$name] = isset($_POST[$name]) ? 1 : 0;
+                    break;
+                case 'list':
+                    $lines = preg_split('/\r\n|\r|\n/', (string) ($_POST[$name] ?? ''));
+                    $lines = array_map('trim', $lines);
+                    $lines = array_values(array_filter($lines, static fn (string $l): bool => $l !== ''));
+                    $data[$name] = json_encode($lines, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    break;
+                case 'number':
+                    $data[$name] = max(0, (int) ($_POST[$name] ?? 0));
+                    break;
+                case 'image':
+                    // Accept a pasted URL, or an uploaded file which takes priority.
+                    $data[$name] = Security::sanitizeText($_POST[$name] ?? '');
+                    if (!empty($_FILES[$name]['name'])) {
+                        $data[$name] = $this->handleImageUpload($name, $key);
+                        $replacedImage = $data[$name];
+                    }
+                    break;
+                default:
+                    $data[$name] = Security::sanitizeText($_POST[$name] ?? '');
+            }
+
+            if (!empty($field['required']) && $data[$name] === '') {
+                $errors[] = $field['label'] . ' is required.';
+            }
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $data['id'] = $id;
+        }
+
+        // Remember the previously stored image so we can clean it up from disk
+        // once the replacement is saved.
+        $previousImage = null;
+        if ($replacedImage !== null && $id > 0) {
+            $old = call_user_func([$section['model'], $section['find']], $id);
+            if (is_array($old) && isset($old['image'])) {
+                $previousImage = (string) $old['image'];
+            }
+        }
+
+        if ($errors !== []) {
+            $this->setFlash('danger', implode(' ', $errors));
+            $this->render('admin/content_form', [
+                'title' => ($id > 0 ? 'Edit ' : 'Add ') . $section['label'],
+                'layout' => 'admin',
+                'sectionKey' => $key,
+                'section' => $section,
+                'item' => $data,
+                'isEdit' => $id > 0,
+                'csrf' => Security::csrfToken(),
+            ]);
+            return;
+        }
+
+        if (call_user_func([$section['model'], $section['save']], $data)) {
+            // The new image is saved; remove the old uploaded file (if any).
+            if ($previousImage !== null) {
+                $this->deleteUploadedFile($previousImage);
+            }
+            $this->setFlash('success', $section['label'] . ' item saved.');
+        } else {
+            $this->setFlash('danger', 'Could not save. Is the database running?');
+        }
+
+        $this->redirect('/admin/content/' . $key);
+    }
+
+    private function deleteContent(string $key, array $section): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/content/' . $key);
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        // Remove any uploaded image from disk before deleting the row.
+        $item = $id > 0 ? call_user_func([$section['model'], $section['find']], $id) : null;
+        if (is_array($item) && isset($item['image'])) {
+            $this->deleteUploadedFile((string) $item['image']);
+        }
+
+        if ($id > 0 && call_user_func([$section['model'], $section['delete']], $id)) {
+            $this->setFlash('success', $section['label'] . ' item deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that item.');
+        }
+
+        $this->redirect('/admin/content/' . $key);
+    }
+
+    /* ---------- Page section editor (/admin/pages) ---------- */
+
+    /**
+     * Dispatch /admin/pages/* requests.
+     * Routes: /admin/pages              → page overview
+     *         /admin/pages/{page}       → section list for one page
+     *         /admin/pages/{page}/{section}/edit → edit form
+     *         /admin/pages/{page}/{section}/save → POST save
+     *         /admin/pages/{page}/{section}/reset → POST reset to defaults
+     */
+    public function pages(string $method, string $path): void
+    {
+        $this->requireAuth();
+
+        $rest = trim(substr($path, strlen('/admin/pages')), '/');
+        $segments = $rest === '' ? [] : explode('/', $rest);
+
+        $pageKey = $segments[0] ?? '';
+        $sectionKey = $segments[1] ?? '';
+        $action = $segments[2] ?? '';
+
+        if ($pageKey === '') {
+            $this->pageOverview();
+            return;
+        }
+
+        if (!isset(self::PAGE_SECTIONS[$pageKey])) {
+            $this->setFlash('danger', 'Unknown page.');
+            $this->redirect('/admin/pages');
+            return;
+        }
+
+        $page = self::PAGE_SECTIONS[$pageKey];
+
+        if ($sectionKey === '' && $method === 'GET') {
+            $this->pageSectionList($pageKey, $page);
+            return;
+        }
+
+        if (!isset($page['sections'][$sectionKey])) {
+            $this->setFlash('danger', 'Unknown section.');
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+
+        switch ($action) {
+            case 'edit':
+                if ($method === 'GET') {
+                    $this->pageSectionForm($pageKey, $sectionKey, $page['sections'][$sectionKey]);
+                    return;
+                }
+                break;
+            case 'save':
+                if ($method === 'POST') {
+                    $this->savePageSection($pageKey, $sectionKey, $page['sections'][$sectionKey]);
+                    return;
+                }
+                break;
+            case 'reset':
+                if ($method === 'POST') {
+                    $this->resetPageSection($pageKey, $sectionKey);
+                    return;
+                }
+                break;
+        }
+
+        $this->setFlash('danger', 'Invalid request.');
+        $this->redirect('/admin/pages/' . $pageKey);
+    }
+
+    private function pageOverview(): void
+    {
+        $pages = [];
+        foreach (self::PAGE_SECTIONS as $key => $page) {
+            $pages[$key] = [
+                'label' => $page['label'],
+                'url' => $page['url'],
+                'sectionCount' => count($page['sections']),
+            ];
+        }
+
+        $this->render('admin/pages', [
+            'title' => 'Edit Pages',
+            'layout' => 'admin',
+            'pages' => $pages,
+        ]);
+    }
+
+    private function pageSectionList(string $pageKey, array $page): void
+    {
+        $sections = PageSectionModel::forPage($pageKey, false);
+        $previews = [];
+        foreach ($page['sections'] as $sectionKey => $section) {
+            $data = $sections[$sectionKey] ?? [];
+            $previews[$sectionKey] = [
+                'label' => $section['label'],
+                'heading' => (string) ($data['heading'] ?? ''),
+                'content' => (string) ($data['content'] ?? ''),
+                'kicker' => (string) ($data['kicker'] ?? ''),
+                'image' => (string) ($data['image'] ?? ''),
+            ];
+        }
+
+        $this->render('admin/page_sections', [
+            'title' => 'Edit ' . $page['label'] . ' Page',
+            'layout' => 'admin',
+            'pageKey' => $pageKey,
+            'page' => $page,
+            'previews' => $previews,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function pageSectionForm(string $pageKey, string $sectionKey, array $section): void
+    {
+        $sections = PageSectionModel::forPage($pageKey, false);
+        $item = $sections[$sectionKey] ?? [];
+        if (isset($item['id'])) {
+            unset($item['id']);
+        }
+
+        $this->render('admin/content_form', [
+            'title' => 'Edit ' . $section['label'],
+            'layout' => 'admin',
+            'sectionKey' => $pageKey . '/' . $sectionKey,
+            'section' => $section,
+            'item' => $item,
+            'isEdit' => true,
+            'csrf' => Security::csrfToken(),
+            'formAction' => BASE_URL . '/admin/pages/' . $pageKey . '/' . $sectionKey . '/save',
+            'backUrl' => BASE_URL . '/admin/pages/' . $pageKey,
+        ]);
+    }
+
+    private function savePageSection(string $pageKey, string $sectionKey, array $section): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token. Please try again.');
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+
+        $data = [];
+        $errors = [];
+        $replacedImage = null;
+
+        foreach ($section['fields'] as $field) {
+            $name = $field['name'];
+            $type = $field['type'] ?? 'text';
+
+            switch ($type) {
+                case 'list':
+                    $lines = preg_split('/\r\n|\r|\n/', (string) ($_POST[$name] ?? ''));
+                    $lines = array_map('trim', $lines);
+                    $lines = array_values(array_filter($lines, static fn (string $l): bool => $l !== ''));
+                    $data[$name] = json_encode($lines, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    break;
+                case 'image':
+                    $data[$name] = Security::sanitizeText($_POST[$name] ?? '');
+                    if (!empty($_FILES[$name]['name'])) {
+                        $data[$name] = $this->handleImageUpload($name, $pageKey, '/admin/pages/' . $pageKey . '/' . $sectionKey . '/edit');
+                        $replacedImage = $data[$name];
+                    }
+                    break;
+                default:
+                    $data[$name] = Security::sanitizeText($_POST[$name] ?? '');
+            }
+
+            if (!empty($field['required']) && trim((string) $data[$name]) === '') {
+                $errors[] = $field['label'] . ' is required.';
+            }
+        }
+
+        $previousImage = null;
+        if ($replacedImage !== null) {
+            $current = PageSectionModel::forPage($pageKey, false);
+            if (isset($current[$sectionKey]['image'])) {
+                $previousImage = (string) $current[$sectionKey]['image'];
+            }
+        }
+
+        if ($errors !== []) {
+            $this->setFlash('danger', implode(' ', $errors));
+            $this->redirect('/admin/pages/' . $pageKey . '/' . $sectionKey . '/edit');
+            return;
+        }
+
+        // Find the existing row id (if any) so we update rather than duplicate.
+        $existing = PageSectionModel::forPage($pageKey, false);
+        if (isset($existing[$sectionKey]['id'])) {
+            $data['id'] = (int) $existing[$sectionKey]['id'];
+        }
+        $data['page_key'] = $pageKey;
+        $data['section_key'] = $sectionKey;
+
+        if (PageSectionModel::save($data)) {
+            if ($previousImage !== null) {
+                $this->deleteUploadedFile($previousImage);
+            }
+            $this->setFlash('success', 'Section "' . $section['label'] . '" saved.');
+        } else {
+            $this->setFlash('danger', 'Could not save. Is the database running?');
+        }
+
+        $this->redirect('/admin/pages/' . $pageKey);
+    }
+
+    private function resetPageSection(string $pageKey, string $sectionKey): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+
+        $existing = PageSectionModel::forPage($pageKey, false);
+        $id = (int) ($existing[$sectionKey]['id'] ?? 0);
+        $image = (string) ($existing[$sectionKey]['image'] ?? '');
+        if ($id > 0 && PageSectionModel::delete($id)) {
+            // Remove any uploaded image so it doesn't linger orphaned on disk.
+            if ($image !== '' && str_starts_with($image, BASE_URL . '/public/uploads/')) {
+                $this->deleteUploadedFile($image);
+            }
+            $this->setFlash('success', 'Section reset to its default content.');
+        } else {
+            $this->setFlash('danger', 'Could not reset that section.');
+        }
+
+        $this->redirect('/admin/pages/' . $pageKey);
+    }
+
+    /* ---------- Admin user management (/admin/users) ---------- */
+
+    /**
+     * Dispatch /admin/users requests.
+     * Routes: /admin/users           → list
+     *         /admin/users/new       → create form
+     *         /admin/users/edit?id=N → edit form
+     *         /admin/users/save      → POST create/update
+     *         /admin/users/delete    → POST delete
+     */
+    public function users(string $method, string $path): void
+    {
+        $this->requireAuth();
+
+        $rest = trim(substr($path, strlen('/admin/users')), '/');
+        $segments = $rest === '' ? [] : explode('/', $rest);
+        $sub = $segments[0] ?? '';
+
+        switch ($sub) {
+            case '':
+                if ($method === 'GET') {
+                    $this->userList();
+                    return;
+                }
+                break;
+            case 'new':
+                if ($method === 'GET') {
+                    $this->userForm(false);
+                    return;
+                }
+                break;
+            case 'edit':
+                if ($method === 'GET') {
+                    $this->userForm(true);
+                    return;
+                }
+                break;
+            case 'save':
+                if ($method === 'POST') {
+                    $this->saveUser();
+                    return;
+                }
+                break;
+            case 'delete':
+                if ($method === 'POST') {
+                    $this->deleteUser();
+                    return;
+                }
+                break;
+        }
+
+        $this->setFlash('danger', 'Invalid request.');
+        $this->redirect('/admin/users');
+    }
+
+    private function userList(): void
+    {
+        $this->render('admin/users', [
+            'title' => 'Admin Users',
+            'layout' => 'admin',
+            'users' => AdminUserModel::all(),
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function userForm(bool $isEdit): void
+    {
+        $user = null;
+        if ($isEdit) {
+            $id = (int) ($_GET['id'] ?? 0);
+            $user = $id > 0 ? AdminUserModel::find($id) : null;
+            if ($user === null) {
+                $this->setFlash('danger', 'User not found.');
+                $this->redirect('/admin/users');
+                return;
+            }
+        }
+
+        $this->render('admin/user_form', [
+            'title' => ($isEdit ? 'Edit ' : 'Add ') . 'Admin User',
+            'layout' => 'admin',
+            'user' => $user,
+            'isEdit' => $isEdit,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function saveUser(): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token. Please try again.');
+            $this->redirect('/admin/users');
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $username = strtolower(Security::sanitizeText($_POST['username'] ?? ''));
+        $displayName = Security::sanitizeText($_POST['display_name'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+        $confirm = (string) ($_POST['confirm_password'] ?? '');
+
+        $errors = [];
+        if (!preg_match('/^[a-z0-9_\-.]+$/', $username) || strlen($username) < 3 || strlen($username) > 40) {
+            $errors[] = 'Username must be 3–40 characters using letters, numbers, dashes or underscores.';
+        }
+
+        $changingPassword = $id === 0 || $password !== '';
+        if ($changingPassword) {
+            if (strlen($password) < 8) {
+                $errors[] = 'The password must be at least 8 characters.';
+            }
+            if (!hash_equals($password, $confirm)) {
+                $errors[] = 'The passwords do not match.';
+            }
+        }
+
+        // Username must be unique (and not the same user being edited).
+        $existing = AdminUserModel::findByUsername($username);
+        if ($existing !== null && (int) $existing['id'] !== $id) {
+            $errors[] = 'That username is already taken.';
+        }
+
+        if ($errors !== []) {
+            $this->setFlash('danger', implode(' ', $errors));
+            $this->redirect($id > 0 ? '/admin/users/edit?id=' . $id : '/admin/users/new');
+            return;
+        }
+
+        $passwordHash = $changingPassword ? password_hash($password, PASSWORD_DEFAULT) : null;
+
+        $ok = $id > 0
+            ? AdminUserModel::update($id, $username, $passwordHash, $displayName)
+            : AdminUserModel::create($username, (string) $passwordHash, $displayName);
+
+        if ($ok) {
+            $this->setFlash('success', $id > 0 ? 'User updated.' : 'User created.');
+        } else {
+            $this->setFlash('danger', 'Could not save the user. Is the database running?');
+        }
+
+        $this->redirect('/admin/users');
+    }
+
+    private function deleteUser(): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/users');
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        // Never allow deleting the account you are currently signed in with.
+        $current = strtolower((string) ($_SESSION['admin_username'] ?? ''));
+        $target = $id > 0 ? AdminUserModel::find($id) : null;
+        if ($target === null) {
+            $this->setFlash('danger', 'User not found.');
+            $this->redirect('/admin/users');
+            return;
+        }
+        if ($current !== '' && strtolower((string) $target['username']) === $current) {
+            $this->setFlash('danger', 'You cannot delete the account you are signed in with.');
+            $this->redirect('/admin/users');
+            return;
+        }
+
+        if (AdminUserModel::delete($id)) {
+            $this->setFlash('success', 'User deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that user.');
+        }
+
+        $this->redirect('/admin/users');
+    }
+
+    /**
+     * Save an uploaded image into public/uploads/ and return its public URL.
+     * Redirects back with a danger flash if the file is invalid.
+     */
+    private function handleImageUpload(string $fieldName, string $sectionKey, string $redirect = ''): string
+    {
+        $maxBytes = 5 * 1024 * 1024; // 5 MB
+        $tmp = (string) ($_FILES[$fieldName]['tmp_name'] ?? '');
+        $size = (int) ($_FILES[$fieldName]['size'] ?? 0);
+
+        $redirect = $redirect !== '' ? $redirect : '/admin/content/' . $sectionKey;
+
+        if (($_FILES[$fieldName]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+            || $tmp === '' || $size <= 0 || $size > $maxBytes) {
+            if (($_FILES[$fieldName]['error'] ?? 0) === UPLOAD_ERR_INI_SIZE) {
+                $this->setFlash('danger', 'Upload rejected: the file exceeds the server upload limit (upload_max_filesize).');
+            } else {
+                $this->setFlash('danger', 'Upload rejected: file is missing or larger than 5 MB.');
+            }
+            $this->redirect($redirect);
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = (string) $finfo->file($tmp);
+        $allowed = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+        ];
+        if (!isset($allowed[$mime]) || @getimagesize($tmp) === false) {
+            $this->setFlash('danger', 'Upload rejected: only JPG, PNG, WEBP and GIF images are allowed.');
+            $this->redirect($redirect);
+        }
+
+        $dir = APP_ROOT . '/public/uploads';
+        if (!is_dir($dir)) {
+            // 0777 so the web server user (e.g. XAMPP's 'daemon') can write to it.
+            @mkdir($dir, 0777, true);
+        }
+        @chmod($dir, 0777);
+
+        if (!is_writable($dir)) {
+            $this->setFlash('danger', 'Upload failed: the uploads folder is not writable by the web server.');
+            $this->redirect($redirect);
+        }
+
+        $filename = bin2hex(random_bytes(12)) . '.' . $allowed[$mime];
+        $dest = $dir . '/' . $filename;
+        if (!@move_uploaded_file($tmp, $dest)) {
+            $this->setFlash('danger', 'Upload failed: could not save the image.');
+            $this->redirect($redirect);
+        }
+        @chmod($dest, 0666);
+
+        return BASE_URL . '/public/uploads/' . $filename;
+    }
+
+    /**
+     * Delete a file that lives inside public/uploads/ (if any).
+     */
+    private function deleteUploadedFile(string $url): void
+    {
+        $prefix = BASE_URL . '/public/uploads/';
+        if (!str_starts_with($url, $prefix)) {
+            return;
+        }
+
+        $file = APP_ROOT . '/public/uploads/' . basename($url);
+        if (is_file($file)) {
+            @unlink($file);
+        }
+    }
+
+    /* ---------- Appointment actions ---------- */
+
+    public function delete(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin');
+        }
+
+        $id = Security::sanitizeText($_POST['id'] ?? '');
+        $redirect = $this->filterRedirect();
+
+        if ($id !== '' && (new AppointmentModel())->delete($id)) {
+            $this->setFlash('success', 'Appointment deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that appointment.');
+        }
+
+        $this->redirect($redirect);
+    }
+
+    public function updateStatus(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin');
+        }
+
+        $id = Security::sanitizeText($_POST['id'] ?? '');
+        $status = Security::sanitizeText($_POST['status'] ?? '');
+        $redirect = $this->filterRedirect();
+
+        if ($id !== '' && in_array($status, self::ALLOWED_STATUSES, true)
+            && (new AppointmentModel())->updateStatus($id, $status)) {
+            $this->setFlash('success', 'Appointment status updated.');
+        } else {
+            $this->setFlash('danger', 'Could not update that appointment.');
+        }
+
+        $this->redirect($redirect);
+    }
+
+    /**
+     * Keep the active status filter after an action (e.g. ?status=new).
+     */
+    private function filterRedirect(): string
+    {
+        $filter = Security::sanitizeText($_POST['filter'] ?? '');
+        return in_array($filter, self::ALLOWED_STATUSES, true)
+            ? '/admin/appointments?status=' . $filter
+            : '/admin/appointments';
+    }
+}

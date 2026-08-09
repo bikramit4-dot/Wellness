@@ -1,0 +1,23 @@
+# ── macOS ────────────────────────────────────────────────
+.DS_Store
+*.swp
+
+# ── Local environment junk (do not commit) ───────────────
+cj.txt
+_test_unlock.sh
+
+# ── Runtime data (user-submitted / generated content) ────
+storage/*.txt
+storage/*.json
+!storage/.gitkeep
+
+# ── Large media (too big for git — keep repo lean) ───────
+public/uploads/*.mp4
+public/uploads/*.mov
+public/uploads/*.avi
+public/uploads/*.mkv
+
+# ── IDE / editor ─────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project

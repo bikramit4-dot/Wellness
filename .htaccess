@@ -1,0 +1,7 @@
+RewriteEngine On
+# No RewriteBase here on purpose: Apache infers the base from the directory
+# containing this file, so the app keeps working whether it is deployed at a
+# sub-directory (e.g. /wellness), the domain root, or a renamed folder.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
