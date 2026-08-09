@@ -4,6 +4,12 @@
 </FilesMatch>
 Options -Indexes
 
+# Uploaded files must not be sniffed into HTML: force a strict MIME so a
+# poisoned file cannot execute in a visitor's browser.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
 # Serve media with the correct Content-Type (the site sends X-Content-Type-Options: nosniff,
 # so browsers refuse to play files whose MIME type is missing or wrong).
 AddType video/mp4 .mp4 .m4v

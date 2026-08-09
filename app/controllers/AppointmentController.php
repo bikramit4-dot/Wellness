@@ -1,10 +1,24 @@
 <?php
 class AppointmentController extends Controller
 {
+    /** Max submissions per IP inside the sliding window below. */
+    private const RATE_MAX = 5;
+    private const RATE_WINDOW = 600; // 10 minutes
+
     public function store(): void
     {
         if (!isset($_POST['csrf_token']) || !Security::validateCsrf($_POST['csrf_token'])) {
             $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/contact');
+        }
+
+        // Rate limiting: at most 5 real submissions per IP every 10 minutes,
+        // so a bot can never flood the bookings inbox. Limited callers get the
+        // same "thank you" so they can't tell they were throttled.
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        if (Security::throttle('appointment:' . $ip, self::RATE_MAX, self::RATE_WINDOW) > 0) {
+            error_log('[Appointment] Rate limit hit for IP ' . $ip);
+            $this->setFlash('success', 'Appointment request received. We will contact you shortly.');
             $this->redirect('/contact');
         }
 
@@ -16,13 +30,14 @@ class AppointmentController extends Controller
             $this->redirect('/contact');
         }
 
-        $name = Security::sanitizeText($_POST['full_name'] ?? '');
-        $email = Security::sanitizeEmail($_POST['email'] ?? '');
-        $phone = Security::sanitizeText($_POST['phone'] ?? '');
-        $treatment = Security::sanitizeText($_POST['treatment'] ?? '');
-        $date = Security::sanitizeText($_POST['preferred_date'] ?? '');
-        $time = Security::sanitizeText($_POST['preferred_time'] ?? '');
-        $message = Security::sanitizeText($_POST['message'] ?? '');
+        // Length caps keep the stored data tidy and stop oversized payloads.
+        $name = mb_substr(Security::sanitizeText($_POST['full_name'] ?? ''), 0, 100);
+        $email = mb_substr(Security::sanitizeEmail($_POST['email'] ?? ''), 0, 190);
+        $phone = mb_substr(Security::sanitizeText($_POST['phone'] ?? ''), 0, 30);
+        $treatment = mb_substr(Security::sanitizeText($_POST['treatment'] ?? ''), 0, 120);
+        $date = mb_substr(Security::sanitizeText($_POST['preferred_date'] ?? ''), 0, 10);
+        $time = mb_substr(Security::sanitizeText($_POST['preferred_time'] ?? ''), 0, 10);
+        $message = mb_substr(Security::sanitizeText($_POST['message'] ?? ''), 0, 2000);
 
         if ($name === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->setFlash('danger', 'Please provide a valid name and email.');
@@ -57,10 +72,19 @@ class AppointmentController extends Controller
             return true;
         }
 
-        // 2. The form renders a hidden timestamp. A missing value means the
-        //    submission didn't come through the real page.
-        $loadedAt = (int) ($_POST['form_loaded_at'] ?? 0);
+        // 2. The server recorded when /contact was actually rendered — use that
+        //    as the authoritative "page loaded" time (the hidden form field is
+        //    only a hint; a bot can echo it back verbatim).
+        $loadedAt = (int) ($_SESSION['contact_form_ts'] ?? 0);
         if ($loadedAt <= 0) {
+            $loadedAt = (int) ($_POST['form_loaded_at'] ?? 0);
+        }
+        if ($loadedAt <= 0) {
+            return true;
+        }
+
+        // 2b. A timestamp in the future means the request was forged.
+        if ($loadedAt > time() + 60) {
             return true;
         }
 

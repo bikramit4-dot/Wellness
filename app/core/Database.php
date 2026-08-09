@@ -22,6 +22,9 @@ class Database
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
+                // Short connect timeout: if MySQL is down the site fails fast
+                // (and uses file fallbacks) instead of hanging every request.
+                PDO::ATTR_TIMEOUT => 3,
             ]);
         } catch (Throwable $e) {
             error_log('[Database] Connection failed: ' . $e->getMessage());

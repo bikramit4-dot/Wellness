@@ -9,6 +9,7 @@ _test_unlock.sh
 # ── Runtime data (user-submitted / generated content) ────
 storage/*.txt
 storage/*.json
+storage/backups/
 !storage/.gitkeep
 
 # ── Large media (too big for git — keep repo lean) ───────

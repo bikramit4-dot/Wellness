@@ -131,6 +131,33 @@ if (!function_exists('asset_url')) {
     }
 }
 
+// ============ Error handling ============
+// APP_DEBUG: true on localhost (show errors while developing), false
+// everywhere else (errors are logged, never shown to visitors).
+if (!defined('APP_DEBUG')) {
+    $__isLocalhost = in_array(($_SERVER['REMOTE_ADDR'] ?? ''), ['127.0.0.1', '::1'], true)
+        || (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg');
+    define('APP_DEBUG', $__isLocalhost);
+}
+error_reporting(E_ALL);
+ini_set('display_errors', APP_DEBUG ? '1' : '0');
+ini_set('log_errors', '1');
+
+// ============ Secure session cookies ============
+// HttpOnly: JS cannot read the session cookie (blocks XSS cookie theft).
+// SameSite=Lax: CSRF-style cross-site cookie sends are blocked.
+// Secure: cookie only sent over HTTPS when the site is served over HTTPS.
+$__sessionSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => $__sessionSecure,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

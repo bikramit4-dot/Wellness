@@ -23,6 +23,9 @@ require_once __DIR__ . '/app/models/AdminUserModel.php';
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-XSS-Protection: 1; mode=block');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()');
+header('Cross-Origin-Opener-Policy: same-origin');
 header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; img-src 'self' data:; frame-src https://maps.google.com https://www.google.com;");
 
 // ============ Auto cache-clear ============

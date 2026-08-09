@@ -43,7 +43,7 @@
                     <label for="website">Website</label>
                     <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                 </div>
-                <input type="hidden" name="form_loaded_at" value="<?= time() ?>">
+                <input type="hidden" name="form_loaded_at" value="<?= (int) ($_SESSION['contact_form_ts'] ?? time()) ?>">
                 <div class="form-row">
                     <div>
                         <label for="full_name">Full Name</label>

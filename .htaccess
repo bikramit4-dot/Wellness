@@ -1,3 +1,11 @@
+# Security: never let Apache list directory contents.
+Options -Indexes
+
+# Block access to sensitive dot-files (e.g. .git, .env).
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
 RewriteEngine On
 # No RewriteBase here on purpose: Apache infers the base from the directory
 # containing this file, so the app keeps working whether it is deployed at a

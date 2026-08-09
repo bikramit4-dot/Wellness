@@ -82,6 +82,15 @@ class PageController extends Controller
             if ($path === '/gallery') {
                 $data['galleryItems'] = GalleryModel::all();
             }
+            if ($path === '/contact') {
+                // Server-side timestamp for the appointment form. We keep the
+                // EARLIEST render time of the session so a user with several
+                // tabs open can submit from any of them without being flagged.
+                $_SESSION['contact_form_ts'] = min(
+                    (int) ($_SESSION['contact_form_ts'] ?? PHP_INT_MAX),
+                    time()
+                );
+            }
 
             $this->render($pages[$path]['view'], $data);
             return;
