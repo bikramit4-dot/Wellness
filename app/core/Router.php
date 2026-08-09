@@ -73,6 +73,13 @@ class Router
                         $controller->showPassword();
                     }
                     break;
+                case '/admin/clear-cache':
+                    if ($method === 'POST') {
+                        $controller->clearCache();
+                    } else {
+                        $controller->dashboard();
+                    }
+                    break;
                 case '/admin/unlock':
                     $controller->unlock();
                     break;

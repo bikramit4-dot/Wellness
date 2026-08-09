@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/style.css">
+    <link rel="stylesheet" href="<?= asset_url('/css/style.css') ?>">
 </head>
 <body data-base="<?= Security::e(BASE_URL) ?>">
 
@@ -228,6 +228,6 @@ $fiHoursHtml = implode('<br>', array_map(
     </div>
 </footer>
 
-<script src="<?= BASE_URL ?>/public/js/main.js"></script>
+<script src="<?= asset_url('/js/main.js') ?>"></script>
 </body>
 </html>

@@ -865,6 +865,43 @@ class AdminController extends Controller
         ]);
     }
 
+    /* ---------- Cache control ---------- */
+
+    /**
+     * POST /admin/clear-cache — flush server-side caches so freshly edited
+     * PHP/data files are served on the very next request.
+     *
+     * Browser-side caching is already handled automatically: HTML pages are
+     * sent with no-cache headers and CSS/JS use versioned (?v=) URLs, so this
+     * button mainly clears PHP opcache and the file-stat cache.
+     */
+    public function clearCache(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin');
+            return;
+        }
+
+        $cleared = [];
+
+        // Compiled PHP bytecode (opcache) — makes edited files take effect
+        // immediately instead of whenever opcache next revalidates.
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+            $cleared[] = 'PHP opcache';
+        }
+
+        // PHP file-stat cache (filemtime, is_file, ...).
+        clearstatcache(true);
+        $cleared[] = 'file stat cache';
+
+        $this->setFlash('success', 'Cache cleared (' . implode(', ', $cleared) . ').');
+        $this->redirect('/admin');
+    }
+
     /* ---------- Appointments (full list) ---------- */
 
     public function appointments(): void

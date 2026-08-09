@@ -1,0 +1,21 @@
+# ============ Auto cache-clear: static assets ============
+# CSS/JS are served with a version query string (?v=<mtime>) — see asset_url()
+# in app/config/config.php. Because the URL changes whenever the file changes,
+# browsers can safely cache these files for a long time: the stale copy is
+# never served because the versioned URL is new.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
+# Images and media below public/ that are NOT versioned (e.g. uploads) still
+# benefit from revalidation so a replaced file is picked up quickly.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+</IfModule>

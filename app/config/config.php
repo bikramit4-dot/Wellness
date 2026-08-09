@@ -102,6 +102,35 @@ if (!defined('ADMIN_NOTIFY_EMAIL')) {
     define('ADMIN_NOTIFY_EMAIL', 'info@harmonywellness.com');
 }
 
+// ============ Auto cache-clear system ============
+// When AUTO_CLEAR_CACHE is true (default), the site sends no-cache headers on
+// every HTML response and versioned URLs for CSS/JS, so visitors always see the
+// latest changes without manually clearing the browser cache. Set it to false
+// in production if you prefer to let browsers cache aggressively.
+if (!defined('AUTO_CLEAR_CACHE')) {
+    define('AUTO_CLEAR_CACHE', true);
+}
+
+/**
+ * Build a cache-busted URL for a static asset inside public/.
+ *
+ * Appends the file's last-modified time as a version query string (?v=...),
+ * so whenever the file changes the URL changes too — browsers automatically
+ * re-download it and the stale cache is never used.
+ *
+ * @param string $path path relative to public/, e.g. '/css/style.css'
+ */
+if (!function_exists('asset_url')) {
+    function asset_url(string $path): string
+    {
+        $clean = '/' . ltrim($path, '/');
+        $full = APP_ROOT . '/public' . $clean;
+        $version = is_file($full) ? (string) @filemtime($full) : '';
+
+        return BASE_URL . '/public' . $clean . ($version !== '' ? '?v=' . $version : '');
+    }
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

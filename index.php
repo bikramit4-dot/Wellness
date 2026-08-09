@@ -25,6 +25,16 @@ header('X-Frame-Options: SAMEORIGIN');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; img-src 'self' data:; frame-src https://maps.google.com https://www.google.com;");
 
+// ============ Auto cache-clear ============
+// While AUTO_CLEAR_CACHE is on, tell browsers (and any proxy in between) to
+// always re-fetch HTML pages, so edits show up immediately. Combined with the
+// versioned asset URLs (?v=...) from asset_url() this fully solves stale cache.
+if (defined('AUTO_CLEAR_CACHE') && AUTO_CLEAR_CACHE) {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

@@ -1491,6 +1491,22 @@ input:focus, select:focus, textarea:focus {
     border-bottom: 2px solid transparent;
 }
 .admin-nav a:hover { color: var(--apricot); border-bottom-color: var(--apricot); }
+.admin-nav .admin-nav-clear {
+    margin: 0;
+    margin-left: auto;
+}
+.admin-nav .admin-nav-clear button {
+    font: inherit;
+    color: var(--sage-200);
+    font-size: .88rem;
+    font-weight: 600;
+    padding: .3rem 0;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+.admin-nav .admin-nav-clear button:hover { color: var(--apricot); border-bottom-color: var(--apricot); }
 
 /* Content management */
 .admin-head-note { color: var(--muted); margin: .2rem 0 0; max-width: 520px; font-size: .95rem; }

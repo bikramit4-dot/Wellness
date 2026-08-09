@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/style.css">
+    <link rel="stylesheet" href="<?= asset_url('/css/style.css') ?>">
 </head>
 <body class="admin-body<?= !empty($_SESSION['admin_logged_in']) ? ' admin-authed' : '' ?>" data-base="<?= Security::e(BASE_URL) ?>" data-idle-lock="<?= Security::e((string) (defined('ADMIN_IDLE_LOCK_SECONDS') ? ADMIN_IDLE_LOCK_SECONDS : 20)) ?>" data-lock-entry="<?= Security::e((defined('ADMIN_LOCK_ON_ENTRY') && ADMIN_LOCK_ON_ENTRY) ? '1' : '0') ?>" data-csrf="<?= Security::e(Security::csrfToken()) ?>">
 
@@ -50,6 +50,10 @@
         <a href="<?= BASE_URL ?>/admin/content/services">Services</a>
         <a href="<?= BASE_URL ?>/admin/users">Users</a>
         <a href="<?= BASE_URL ?>/admin/password">Password</a>
+        <form action="<?= BASE_URL ?>/admin/clear-cache" method="post" class="admin-nav-clear">
+            <input type="hidden" name="csrf_token" value="<?= Security::e(Security::csrfToken()) ?>">
+            <button type="submit" title="Clear PHP opcache & file cache">Clear Cache</button>
+        </form>
     </div>
 </nav>
 <?php endif; ?>
@@ -92,6 +96,6 @@
     </div>
 </div>
 
-<script src="<?= BASE_URL ?>/public/js/main.js"></script>
+<script src="<?= asset_url('/js/main.js') ?>"></script>
 </body>
 </html>
