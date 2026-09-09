@@ -1,4 +1,4 @@
-/* Harmony Wellness Center — UI interactions */
+/* Chitrawan Nature Cure Hospital — UI interactions */
 (function () {
     'use strict';
 
@@ -250,6 +250,16 @@
         el.textContent = String(new Date().getFullYear());
     });
 
+    /* ---------- Techniques & Methods timeline: expand definition on click ---------- */
+    document.querySelectorAll('.timeline-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var item = btn.closest('.timeline-item');
+            if (!item) return;
+            var open = item.classList.toggle('open');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    });
+
     /* ---------- Lightbox: click a gallery photo to view it large ---------- */
     var lightboxTriggers = Array.prototype.slice.call(document.querySelectorAll('[data-lightbox]'));
     var lightboxEl = null;
@@ -391,13 +401,14 @@
         var lockPassword = document.getElementById('adminLockPassword');
         var lockError = document.getElementById('adminLockError');
         var lockMsg = document.getElementById('adminLockMsg');
-        var idleSeconds = parseInt(body.dataset.idleLock || '20', 10);
-        if (isNaN(idleSeconds) || idleSeconds < 5) idleSeconds = 20;
+        var idleSeconds = parseInt(body.dataset.idleLock || '0', 10);
+        if (isNaN(idleSeconds) || idleSeconds < 0) idleSeconds = 0;
 
         var idleTimer = null;
         var locked = false;
 
         function armIdle() {
+            if (idleSeconds <= 0) return; // Disabled
             if (idleTimer) window.clearTimeout(idleTimer);
             idleTimer = window.setTimeout(lockAdmin, idleSeconds * 1000);
         }
@@ -478,5 +489,282 @@
         } else {
             armIdle();
         }
+    }
+})();
+
+// ─── Notification bell + real-time polling ─────────────────────────
+(function () {
+    var btn = document.getElementById('notifBellBtn');
+    var dd = document.getElementById('notifDropdown');
+    var badge = document.querySelector('.notif-badge');
+    var list = document.getElementById('notifList');
+    var sidebarBadges = document.querySelectorAll('.sidebar-badge');
+    if (!btn || !dd) return;
+
+    var base = (document.body.getAttribute('data-base') || '').replace(/\/$/, '');
+    var lastCheck = parseInt(document.body.getAttribute('data-notif-ts') || '0', 10) || Math.floor(Date.now() / 1000);
+    var pollInterval = 5000; // 5 seconds
+    var isFirstPoll = true;
+
+    // ── Bell toggle ───────────────────────────────────────────────
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dd.hidden = !dd.hidden;
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dd.contains(e.target) && e.target !== btn) {
+            dd.hidden = true;
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') dd.hidden = true;
+    });
+
+    // ── Sound for new notifications ────────────────────────────────
+    var notifSound = null;
+    function playNotifSound() {
+        try {
+            if (!notifSound) {
+                notifSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVggoKGfmpSVX+Jk3NnSj1fdH2Cf3BUX4KFjHZoT0BfdH2Cf3BUX4KFjHZoT0BfdH2Cf3BUX4KFjHZoT0Bf');
+                notifSound.volume = 0.3;
+            }
+            notifSound.currentTime = 0;
+            notifSound.play().catch(function() {});
+        } catch (e) {}
+    }
+
+    // ── Update the badge count ─────────────────────────────────────
+    function setBadge(count) {
+        if (count > 0) {
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = '';
+            } else {
+                badge = document.createElement('span');
+                badge.className = 'notif-badge';
+                badge.textContent = count;
+                btn.appendChild(badge);
+            }
+        } else if (badge) {
+            badge.style.display = 'none';
+        }
+    }
+
+    // ── Update sidebar badges ──────────────────────────────────────
+    function updateSidebarBadges(apptNew, qrNew) {
+        // Update appointment badge in sidebar
+        var links = document.querySelectorAll('.sidebar-link');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href') || '';
+            var existingBadge = link.querySelector('.sidebar-badge');
+            if (href.indexOf('/admin/appointments') !== -1) {
+                if (apptNew > 0) {
+                    if (existingBadge) {
+                        existingBadge.textContent = apptNew;
+                    } else {
+                        var sp = document.createElement('span');
+                        sp.className = 'sidebar-badge';
+                        sp.textContent = apptNew;
+                        link.appendChild(sp);
+                    }
+                } else if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+            if (href.indexOf('/admin/qr-payments') !== -1) {
+                if (qrNew > 0) {
+                    if (existingBadge) {
+                        existingBadge.textContent = qrNew;
+                    } else {
+                        var sp2 = document.createElement('span');
+                        sp2.className = 'sidebar-badge';
+                        sp2.textContent = qrNew;
+                        link.appendChild(sp2);
+                    }
+                } else if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+        });
+    }
+
+    // ── Build a notification list item HTML ────────────────────────
+    function notifIcon(type) {
+        if (type === 'appointment') return '<svg class="icon"><use href="#icon-calendar"/></svg>';
+        if (type === 'qr_payment') return '<svg class="icon"><use href="#icon-zap"/></svg>';
+        return '<svg class="icon"><use href="#icon-shield"/></svg>';
+    }
+
+    function buildNotifItem(n) {
+        var iconClass = 'notif-icon-' + (n.type || 'system');
+        var link = base + (n.link || '/admin');
+        var time = n.created_at || '';
+        return '<li class="notif-item unread" data-id="' + (n.id || '') + '">' +
+            '<a href="' + link + '" class="notif-item-link">' +
+            '<span class="notif-icon ' + iconClass + '">' + notifIcon(n.type) + '</span>' +
+            '<div class="notif-item-body">' +
+            '<strong>' + escHtml(n.title || '') + '</strong>' +
+            '<span>' + escHtml(n.message || '') + '</span>' +
+            '<time>' + escHtml(time) + '</time>' +
+            '</div></a></li>';
+    }
+
+    function escHtml(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s));
+        return d.innerHTML;
+    }
+
+    // ── Poll for updates ───────────────────────────────────────────
+    function poll() {
+        var url = base + '/admin/notifications/updates?since=' + lastCheck;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) return;
+
+                // Update badge
+                setBadge(data.unread);
+
+                // Update sidebar badges
+                updateSidebarBadges(data.appt_new, data.qr_new);
+
+                // If there are NEW notifications (not the first load)
+                if (!isFirstPoll && data.new && data.new.length > 0) {
+                    // Play sound
+                    playNotifSound();
+
+                    // Prepend new items to the dropdown list
+                    if (list) {
+                        // Remove "no notifications" placeholder
+                        var empty = list.querySelector('.notif-empty');
+                        if (empty) empty.remove();
+
+                        // Add new items at the top
+                        var html = '';
+                        data.new.forEach(function (n) {
+                            html += buildNotifItem(n);
+                        });
+                        list.insertAdjacentHTML('afterbegin', html);
+
+                        // Keep only 20 items in the DOM
+                        while (list.children.length > 20) {
+                            list.removeChild(list.lastChild);
+                        }
+                    }
+
+                    // Show a toast notification
+                    data.new.forEach(function (n) {
+                        showToast(n.title, n.message, base + (n.link || '/admin'));
+                    });
+                }
+
+                lastCheck = data.time;
+                isFirstPoll = false;
+            })
+            .catch(function () {}); // silently ignore network errors
+    }
+
+    // ── Toast notification ─────────────────────────────────────────
+    function showToast(title, message, link) {
+        var toast = document.createElement('div');
+        toast.className = 'notif-toast';
+        toast.innerHTML = '<strong>' + escHtml(title) + '</strong><span>' + escHtml(message) + '</span>';
+        toast.addEventListener('click', function () {
+            if (link) window.location.href = link;
+        });
+        document.body.appendChild(toast);
+        // Animate in
+        requestAnimationFrame(function () {
+            toast.classList.add('show');
+        });
+        // Remove after 6 seconds
+        setTimeout(function () {
+            toast.classList.remove('show');
+            setTimeout(function () { toast.remove(); }, 400);
+        }, 6000);
+    }
+
+    // ── Start polling ──────────────────────────────────────────────
+    poll(); // immediate first check
+    setInterval(poll, pollInterval);
+})();
+
+// ─── Password eye toggle + strength indicator ────────────────────
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.pw-toggle');
+    if (!btn) return;
+    e.preventDefault();
+    var targetId = btn.getAttribute('data-pw-target');
+    var input = targetId ? document.getElementById(targetId) : btn.previousElementSibling;
+    if (!input) return;
+    var useEl = btn.querySelector('use');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (useEl) useEl.setAttribute('href', '#icon-eye-off');
+    } else {
+        input.type = 'password';
+        if (useEl) useEl.setAttribute('href', '#icon-eye');
+    }
+});
+
+(function () {
+    var pw = document.getElementById('password');
+    var bar = document.getElementById('pwBar');
+    var text = document.getElementById('pwText');
+    var match = document.getElementById('pwMatch');
+    var confirm = document.getElementById('confirm_password');
+    if (!pw) return;
+
+    pw.addEventListener('input', function () {
+        var v = pw.value;
+        var score = 0;
+        if (v.length >= 8) score++;
+        if (v.length >= 12) score++;
+        if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score++;
+        if (/\d/.test(v)) score++;
+        if (/[^a-zA-Z0-9]/.test(v)) score++;
+
+        var colors = ['#dc2626', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+        var labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+        var idx = Math.min(score, 4);
+
+        if (bar) {
+            bar.style.width = ((idx + 1) / 5 * 100) + '%';
+            bar.style.background = colors[idx];
+        }
+        if (text) {
+            text.textContent = v.length > 0 ? labels[idx] : '';
+            text.style.color = colors[idx];
+        }
+
+        if (confirm && match) {
+            if (confirm.value !== '' && confirm.value === v) {
+                match.textContent = '✓ Passwords match';
+                match.style.color = '#16a34a';
+            } else if (confirm.value !== '') {
+                match.textContent = '✗ Passwords don\'t match';
+                match.style.color = '#dc2626';
+            } else {
+                match.textContent = '';
+            }
+        }
+    });
+
+    if (confirm) {
+        confirm.addEventListener('input', function () {
+            if (!match) return;
+            if (confirm.value === pw.value && confirm.value !== '') {
+                match.textContent = '\u2713 Passwords match';
+                match.style.color = '#16a34a';
+            } else if (confirm.value !== '') {
+                match.textContent = '\u2717 Passwords don\'t match';
+                match.style.color = '#dc2626';
+            } else {
+                match.textContent = '';
+            }
+        });
     }
 })();

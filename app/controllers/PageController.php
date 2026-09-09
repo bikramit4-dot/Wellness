@@ -15,7 +15,7 @@ class PageController extends Controller
     {
         $pages = [
             '/' => ['view' => 'pages/home', 'title' => 'Home'],
-            '/about' => ['view' => 'pages/about', 'title' => 'About Us', 'intro' => 'Meet the people and philosophy behind Harmony Wellness Center — where natural healing is a way of life.'],
+            '/about' => ['view' => 'pages/about', 'title' => 'About Us', 'intro' => 'Meet the people and philosophy behind Chitrawan Nature Cure Hospital — where natural healing is a way of life.'],
             '/treatments' => ['view' => 'pages/treatments', 'title' => 'Treatments', 'intro' => 'Explore our signature natural therapies, each designed to help your body heal itself.'],
             '/physiotherapy' => ['view' => 'pages/physiotherapy', 'title' => 'Physiotherapy', 'intro' => 'Rebuild strength, restore mobility, and live pain-free with expert-guided therapy.'],
             '/diet-therapy' => ['view' => 'pages/diet', 'title' => 'Diet Therapy', 'intro' => 'Food is medicine. Discover nutritional programs tailored to your body and goals.'],
@@ -72,12 +72,24 @@ class PageController extends Controller
                 $data['testimonials'] = TestimonialModel::all();
                 $data['features'] = FeatureModel::all();
                 $data['offers'] = OfferModel::all();
+                // Server-side timestamp for the review form.
+                $_SESSION['review_form_ts'] = min(
+                    (int) ($_SESSION['review_form_ts'] ?? PHP_INT_MAX),
+                    time()
+                );
             }
             if ($path === '/about') {
                 $data['team'] = TeamModel::all();
             }
             if ($path === '/tariff') {
                 $data['tariff'] = TariffModel::all();
+                // Server-side timestamp for the QR advance-payment form. We keep
+                // the EARLIEST render time of the session so a user with several
+                // tabs open can submit from any of them without being flagged.
+                $_SESSION['tariff_form_ts'] = min(
+                    (int) ($_SESSION['tariff_form_ts'] ?? PHP_INT_MAX),
+                    time()
+                );
             }
             if ($path === '/gallery') {
                 $data['galleryItems'] = GalleryModel::all();
@@ -126,6 +138,25 @@ class PageController extends Controller
                     'post' => $post,
                     'sections' => PageSectionModel::forPage('post'),
                     'hidePageHero' => true,
+                ]);
+                return;
+            }
+        }
+
+        // Individual plan detail pages: /tariff/plan/{index}
+        if (str_starts_with($path, '/tariff/plan/')) {
+            $index = (int) trim(substr($path, strlen('/tariff/plan/')), '/');
+            $tariff = TariffModel::all();
+            $plans = $tariff['plans'] ?? [];
+            if (isset($plans[$index])) {
+                $plan = $plans[$index];
+                $this->render('pages/plan', [
+                    'title' => $plan['name'] ?? 'Plan Details',
+                    'plan' => $plan,
+                    'sections' => PageSectionModel::forPage('tariff'),
+                    'breadcrumbParents' => [
+                        ['label' => 'Tariff', 'url' => '/tariff'],
+                    ],
                 ]);
                 return;
             }

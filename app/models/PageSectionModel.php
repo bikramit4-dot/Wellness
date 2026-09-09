@@ -12,6 +12,13 @@ class PageSectionModel
 {
     private const TABLE = 'page_sections';
 
+    private static string $lastError = '';
+
+    public static function lastError(): string
+    {
+        return self::$lastError;
+    }
+
     /**
      * @return array<string, array<string, array<string, mixed>>> keyed [page][section]
      */
@@ -166,8 +173,10 @@ class PageSectionModel
      */
     public static function save(array $data): bool
     {
+        self::$lastError = '';
         $pdo = Database::pdo();
         if ($pdo === null) {
+            self::$lastError = 'Database connection failed. Check DB_HOST, DB_NAME, DB_USER, DB_PASS in your .env file.';
             return false;
         }
 
@@ -210,6 +219,7 @@ class PageSectionModel
 
             return true;
         } catch (Throwable $e) {
+            self::$lastError = $e->getMessage();
             error_log('[PageSectionModel] Save failed: ' . $e->getMessage());
 
             return false;

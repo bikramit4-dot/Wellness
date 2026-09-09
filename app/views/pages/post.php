@@ -25,7 +25,7 @@ $readTime = max(2, (int) ceil($wordCount / 200));
         <h1><?= Security::e($postTitle) ?></h1>
         <div class="article-meta">
             <span class="avatar a2">HW</span>
-            <span class="article-author"><strong>Harmony Wellness Team</strong></span>
+            <span class="article-author"><strong>Chitrawan Nature Cure Hospital Team</strong></span>
             <span class="article-dot" aria-hidden="true">&middot;</span>
             <span><svg class="icon icon-sm"><use href="#icon-clock"/></svg> <?= $readTime ?> min read</span>
         </div>

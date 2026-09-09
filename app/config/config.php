@@ -22,11 +22,11 @@ if (!defined('BASE_URL')) {
 }
 
 if (!defined('SITE_NAME')) {
-    define('SITE_NAME', 'Harmony Wellness Center');
+    define('SITE_NAME', 'Chitrawan Nature Cure Hospital');
 }
 
 if (!defined('SITE_EMAIL')) {
-    define('SITE_EMAIL', 'info@harmonywellness.com');
+    define('SITE_EMAIL', 'info@chitrawannaturecure.com');
 }
 
 // ============ Admin panel credentials ============
@@ -48,9 +48,9 @@ if (!defined('ADMIN_PASSWORD_HASH')) {
 // ============ Admin auto-lock ============
 // ADMIN_IDLE_LOCK_SECONDS: after this many seconds without mouse/keyboard
 // activity, the admin panel shows a lock screen that requires the password
-// to resume.
+// to resume. Set to 0 to disable idle lock entirely.
 if (!defined('ADMIN_IDLE_LOCK_SECONDS')) {
-    define('ADMIN_IDLE_LOCK_SECONDS', 20);
+    define('ADMIN_IDLE_LOCK_SECONDS', 0); // Disabled — no idle lock
 }
 // ADMIN_SESSION_TIMEOUT: hard server-side session expiry (seconds). Even if
 // the client-side lock is bypassed, the session dies after this long.
@@ -61,7 +61,7 @@ if (!defined('ADMIN_SESSION_TIMEOUT')) {
 // (typing /admin, opening a new tab, or coming from the public site) shows
 // the lock screen immediately, so a saved session never skips the password.
 if (!defined('ADMIN_LOCK_ON_ENTRY')) {
-    define('ADMIN_LOCK_ON_ENTRY', true);
+    define('ADMIN_LOCK_ON_ENTRY', false); // Disabled — no lock on entry
 }
 
 // ============ Database (MySQL / MariaDB) ============
@@ -99,7 +99,18 @@ if (!defined('MAILER_FROM_NAME')) {
 
 // Where new-appointment notifications are sent:
 if (!defined('ADMIN_NOTIFY_EMAIL')) {
-    define('ADMIN_NOTIFY_EMAIL', 'info@harmonywellness.com');
+    define('ADMIN_NOTIFY_EMAIL', 'info@chitrawannaturecure.com');
+}
+
+// ============ Google OAuth (Admin Login) ==========
+if (!defined('GOOGLE_CLIENT_ID')) {
+    define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '');
+}
+if (!defined('GOOGLE_CLIENT_SECRET')) {
+    define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+}
+if (!defined('GOOGLE_ALLOWED_EMAILS')) {
+    define('GOOGLE_ALLOWED_EMAILS', getenv('GOOGLE_ALLOWED_EMAILS') ?: '');
 }
 
 // ============ Auto cache-clear system ============

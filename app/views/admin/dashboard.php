@@ -4,7 +4,16 @@ $todayLabel = date('l, F j, Y');
 $newCount = (int) $counts['new'];
 $delta = (int) $weekDelta;
 $maxTreat = $popularTreatments !== [] ? max($popularTreatments) : 1;
+$dbOk = Database::pdo() !== null;
 ?>
+
+<!-- ============ Database status warning ============ -->
+<?php if (!$dbOk): ?>
+<div class="alert alert-danger" style="margin-bottom:1.5rem;">
+    <strong>⚠️ Database is not connected.</strong> Content cannot be saved.<br>
+    <span style="font-size:.88rem;">Check your <code>.env</code> file: <code>DB_HOST</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASS</code> must match your cPanel MySQL credentials.</span>
+</div>
+<?php endif; ?>
 
 <!-- ============ Welcome hero ============ -->
 <div class="dash-hero">
@@ -17,6 +26,9 @@ $maxTreat = $popularTreatments !== [] ? max($popularTreatments) : 1;
             <?= $todayLabel ?>
             &nbsp;&middot;&nbsp;
             <span class="dash-hero-new"><?= $newCount ?> new booking<?= $newCount === 1 ? '' : 's' ?></span>
+            <?php if ((int) $qrCounts['new'] > 0): ?>
+                and <span class="dash-hero-new"><?= (int) $qrCounts['new'] ?> advance payment<?= (int) $qrCounts['new'] === 1 ? '' : 's' ?></span>
+            <?php endif; ?>
             waiting for review
         </p>
     </div>
@@ -62,6 +74,14 @@ $maxTreat = $popularTreatments !== [] ? max($popularTreatments) : 1;
             <span>Completed</span>
         </div>
         <span class="stat-trend">attended</span>
+    </div>
+    <div class="admin-stat stat-qr">
+        <span class="stat-icon"><svg class="icon"><use href="#icon-zap"/></svg></span>
+        <div class="stat-body">
+            <strong><?= (int) $qrCounts['new'] ?></strong>
+            <span>New QR Advance Payments</span>
+        </div>
+        <span class="stat-trend"><?= (int) $qrCounts['total'] ?> total</span>
     </div>
 </div>
 
@@ -139,10 +159,41 @@ $maxTreat = $popularTreatments !== [] ? max($popularTreatments) : 1;
     </div>
 </div>
 
+<!-- ============ Recent QR advance payments ============ -->
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <h2>Recent Advance Payments (QR)</h2>
+        <a href="<?= BASE_URL ?>/admin/qr-payments">View all &rarr;</a>
+    </div>
+    <?php if (empty($recentQrPayments)): ?>
+        <p class="dash-empty">No advance payments yet. New QR-code payments submitted from the tariff page will appear here with their payment screenshot.</p>
+    <?php else: ?>
+        <ul class="dash-recent">
+            <?php foreach ($recentQrPayments as $i => $p): ?>
+                <?php $qrShot = (string) ($p['screenshot'] ?? ''); ?>
+                <li>
+                    <?php if ($qrShot !== ''): ?>
+                        <span class="avatar qr-avatar"><img src="<?= Security::e($qrShot) ?>" alt=""></span>
+                    <?php else: ?>
+                        <span class="avatar a<?= 1 + ($i % 6) ?>"><?= Security::e(strtoupper(substr((string) ($p['name'] ?? ' '), 0, 2))) ?></span>
+                    <?php endif; ?>
+                    <div class="dash-recent-info">
+                        <strong><?= Security::e($p['name'] ?? '') ?> <em style="font-style:normal;color:var(--forest-700)">· <?= Security::e($p['amount'] ?? '') ?></em></strong>
+                        <?php $qrTxn = trim((string) ($p['transaction_id'] ?? '')); ?>
+                        <span><?= $qrTxn !== '' ? Security::e($qrTxn) . ' &middot; ' : '' ?><?= Security::e(date('M j, g:i A', strtotime($p['created_at'] ?? 'now'))) ?></span>
+                    </div>
+                    <span class="badge badge-<?= Security::e($p['status'] ?? 'new') ?>"><i class="badge-dot"></i><?= Security::e(ucfirst($p['status'] ?? 'new')) ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</section>
+
 <!-- ============ Quick actions ============ -->
 <div class="dash-quick">
     <a class="quick-link" href="<?= BASE_URL ?>/contact"><span class="quick-link-icon"><svg class="icon"><use href="#icon-mail"/></svg></span> New Booking</a>
     <a class="quick-link" href="<?= BASE_URL ?>/admin/appointments"><span class="quick-link-icon"><svg class="icon"><use href="#icon-calendar"/></svg></span> Appointments</a>
+    <a class="quick-link" href="<?= BASE_URL ?>/admin/qr-payments"><span class="quick-link-icon"><svg class="icon"><use href="#icon-zap"/></svg></span> QR Payments</a>
     <a class="quick-link" href="<?= BASE_URL ?>/admin/content"><span class="quick-link-icon"><svg class="icon"><use href="#icon-users"/></svg></span> Manage Content</a>
     <a class="quick-link" href="<?= BASE_URL ?>/"><span class="quick-link-icon"><svg class="icon"><use href="#icon-leaf"/></svg></span> View Website</a>
 </div>

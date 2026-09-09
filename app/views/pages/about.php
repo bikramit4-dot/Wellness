@@ -9,7 +9,7 @@
         </div>
         <div class="split">
             <div class="media-frame reveal">
-                <img src="<?= Security::e(sec($sections, 'founder', 'image')) ?>" alt="Doctor consulting with a patient at Harmony Wellness Center" loading="lazy">
+                <img src="<?= Security::e(sec($sections, 'founder', 'image')) ?>" alt="Doctor consulting with a patient at Chitrawan Nature Cure Hospital" loading="lazy">
                 <?php [$badgeName, $badgeRole] = array_pad(explode('|', sec($sections, 'founder', 'sub_content', 'Dr. Rajesh Sharma|Founder & Holistic Medicine Specialist'), 2), 2, ''); ?>
                 <div class="media-badge">
                     <strong><?= Security::e($badgeName) ?></strong>
@@ -31,7 +31,7 @@
     <div class="container">
         <div class="split reverse">
             <div class="media-frame reveal">
-                <img src="<?= Security::e(sec($sections, 'approach', 'image')) ?>" alt="A serene therapy space at Harmony Wellness Center" loading="lazy">
+                <img src="<?= Security::e(sec($sections, 'approach', 'image')) ?>" alt="A serene therapy space at Chitrawan Nature Cure Hospital" loading="lazy">
             </div>
             <div class="reveal" style="--d:.12s">
                 <span class="kicker"><?= Security::e(sec($sections, 'approach', 'kicker', '02 · Our Approach')) ?></span>
@@ -116,7 +116,7 @@
         </div>
         <div class="split reverse">
             <div class="media-frame reveal">
-                <img src="<?= Security::e(sec($sections, 'mission', 'image', BASE_URL . '/public/uploads/photos/photo-1506126613408-eca07ce68773.jpg')) ?>" alt="Our mission at Harmony Wellness Center" loading="lazy">
+                <img src="<?= Security::e(sec($sections, 'mission', 'image', BASE_URL . '/public/uploads/photos/photo-1506126613408-eca07ce68773.jpg')) ?>" alt="Our mission at Chitrawan Nature Cure Hospital" loading="lazy">
             </div>
             <div class="reveal" style="--d:.12s">
                 <article class="card vision-card">
@@ -139,10 +139,10 @@
         <div class="section-head center reveal">
             <span class="kicker"><?= Security::e(sec($sections, 'group', 'kicker', '06 · Our Group')) ?></span>
             <h2><?= Security::e(sec($sections, 'group', 'heading', 'Our Group')) ?></h2>
-            <p class="lede"><?= Security::e(sec($sections, 'group', 'content', 'The people who make Harmony Wellness Center a place of healing.')) ?></p>
+            <p class="lede"><?= Security::e(sec($sections, 'group', 'content', 'The people who make Chitrawan Nature Cure Hospital a place of healing.')) ?></p>
         </div>
         <div class="media-frame group-photo reveal">
-            <img src="<?= Security::e(sec($sections, 'group', 'image', BASE_URL . '/public/uploads/photos/photo-1544367567-0f2fcb009e0b.jpg')) ?>" alt="The Harmony Wellness Center team" loading="lazy">
+            <img src="<?= Security::e(sec($sections, 'group', 'image', BASE_URL . '/public/uploads/photos/photo-1544367567-0f2fcb009e0b.jpg')) ?>" alt="The Chitrawan Nature Cure Hospital team" loading="lazy">
         </div>
         <div class="card-grid team-grid">
             <?php

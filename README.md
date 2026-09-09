@@ -1,4 +1,4 @@
-# 🌿 Harmony Wellness Center
+# 🌿 Chitrawan Nature Cure Hospital
 
 A complete, database-driven wellness center website built with **vanilla PHP 8** (no framework, no Composer, no npm). It includes a full public website (home, about, treatments, tariff, gallery, blog, contact) and a password-protected **admin panel** for managing content, appointments, and admin users.
 
@@ -104,8 +104,8 @@ Everything important is configured in **one file**: `app/config/config.php`.
 | Setting | Default | Description |
 |---|---|---|
 | `BASE_URL` | auto-detected | Base path of the app (e.g. `/wellness`). Set the `BASE_URL` env var to override. |
-| `SITE_NAME` | `Harmony Wellness Center` | Site/brand name used in emails and headers. |
-| `SITE_EMAIL` | `info@harmonywellness.com` | Public contact email. |
+| `SITE_NAME` | `Chitrawan Nature Cure Hospital` | Site/brand name used in emails and headers. |
+| `SITE_EMAIL` | `info@chitrawan naturecure.com` | Public contact email. |
 | `DB_HOST` | `localhost` | MySQL host (`DB_HOST` env var overrides). |
 | `DB_NAME` | `wellness` | Database name (`DB_NAME` env var overrides). |
 | `DB_USER` | `root` | Database user (`DB_USER` env var overrides). |
@@ -115,10 +115,10 @@ Everything important is configured in **one file**: `app/config/config.php`.
 | `RESEND_API_KEY` | *(empty)* | Resend API key for emails (`RESEND_API_KEY` env var overrides). |
 | `MAILER_FROM` | `onboarding@resend.dev` | From-address for sent emails. |
 | `MAILER_FROM_NAME` | `SITE_NAME` | Display name for sent emails. |
-| `ADMIN_NOTIFY_EMAIL` | `info@harmonywellness.com` | Where new-appointment notifications are sent. |
-| `ADMIN_IDLE_LOCK_SECONDS` | `20` | Seconds of inactivity before the admin lock screen appears. |
+| `ADMIN_NOTIFY_EMAIL` | `info@chitrawan naturecure.com` | Where new-appointment notifications are sent. |
+| `ADMIN_IDLE_LOCK_SECONDS` | `0` | Seconds of inactivity before the admin lock screen appears (0 = disabled). |
 | `ADMIN_SESSION_TIMEOUT` | `1800` | Hard server-side session expiry (30 min). |
-| `ADMIN_LOCK_ON_ENTRY` | `true` | Show the lock screen on entry so a saved session never skips the password. |
+| `ADMIN_LOCK_ON_ENTRY` | `false` | Show the lock screen on entry (false = disabled). |
 
 > **Environment variables** (e.g. `DB_NAME`, `RESEND_API_KEY`) can override these values — handy on hosting where you can set env vars via cPanel.
 
@@ -149,7 +149,7 @@ The script prints a new `ADMIN_PASSWORD_HASH` line. Paste it into `app/config/co
 > How login works: the admin panel first checks the `admin_users` **database table**, then falls back to `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` from config. You can manage additional admin users at **Admin → Users**.
 
 ### Admin lock screen
-The panel locks itself after `ADMIN_IDLE_LOCK_SECONDS` of inactivity (20 seconds locally). Re-enter your password to unlock. Even if the lock is bypassed client-side, the server-side session expires after `ADMIN_SESSION_TIMEOUT` (30 min).
+The panel can lock itself after `ADMIN_IDLE_LOCK_SECONDS` of inactivity. Set to `0` to disable idle lock. Even if the lock is bypassed client-side, the server-side session expires after `ADMIN_SESSION_TIMEOUT` (30 min).
 
 ---
 
@@ -174,6 +174,11 @@ If no API key is set, the app still works — emails are simply skipped (and log
   php app/scripts/seed.php
   ```
   Seeding **upserts** therapies and posts (safe to re-run) and **replaces** gallery/testimonials/offers/features/team/tariff/page_sections with the file defaults. It also migrates any old appointments from `storage/appointments.txt` into the database.
+
+If you are upgrading an existing database to support rejected appointment requests, run this once after seeding:
+```bash
+php app/scripts/migration-add-appointment-rejected-status.php
+```
 - Appointment bookings go straight into the database, with `storage/appointments.txt` as a graceful fallback if MySQL is down.
 
 ---
@@ -256,7 +261,7 @@ cPanel → **MultiPHP Manager** → select **PHP 8.1 or newer** for your domain.
 ### Step 8 — Go live & secure it
 1. Visit `https://yourdomain.com` — the site should load with all content.
 2. Log in at `https://yourdomain.com/admin` with the default credentials and **change the password immediately** (Admin → Change Password, or the `admin-password.php` script).
-3. Optionally set `ADMIN_IDLE_LOCK_SECONDS` to something like `300` (5 minutes) instead of `20` for production.
+3. Optionally set `ADMIN_IDLE_LOCK_SECONDS` to something like `300` (5 minutes) in `.env` if you want idle lock for production.
 4. If you use a subfolder like `https://yourdomain.com/wellness`, everything still works — `BASE_URL` is detected automatically.
 5. If you plan to send real appointment emails, verify your domain in Resend and update `MAILER_FROM`.
 
@@ -264,7 +269,7 @@ cPanel → **MultiPHP Manager** → select **PHP 8.1 or newer** for your domain.
 - ☑ Home page loads with images and content
 - ☑ All sub-pages (treatments, tariff, gallery, blog, contact) load without 404s
 - ☑ Booking an appointment from the contact page saves it in the admin panel
-- ☑ Admin login works and the lock screen appears after inactivity
+- ☑ Admin login works
 
 ---
 
@@ -290,7 +295,7 @@ cPanel → **MultiPHP Manager** → select **PHP 8.1 or newer** for your domain.
 | **Images broken** | Uploads folder missing or not writable; or `BASE_URL` wrong (it should normally auto-detect). |
 | **Appointment emails not arriving** | `RESEND_API_KEY` empty, or `MAILER_FROM` domain not verified in Resend. Check PHP error log. |
 | **Admin image upload fails** | `public/uploads/` is not writable by the web server — change permissions. |
-| **Admin lock screen appears too often** | Raise `ADMIN_IDLE_LOCK_SECONDS` in `config.php`. |
+| **Admin lock screen appears too often** | Set `ADMIN_IDLE_LOCK_SECONDS=0` in `.env` to disable idle lock. |
 | **Still stuck?** | Check the PHP error log (cPanel → Error Logs / `~/logs/`), and the app logs `[Database]`, `[Mailer]` messages there. |
 
 ---

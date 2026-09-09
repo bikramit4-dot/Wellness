@@ -12,7 +12,7 @@
     <div class="container hero-content">
         <span class="eyebrow"><svg class="icon"><use href="#icon-leaf"/></svg> <?= Security::e(sec($sections, 'hero', 'kicker', 'Natural Healing · Holistic Care')) ?></span>
         <h1><?= Security::e(sec($sections, 'hero', 'heading', 'Rejuvenate Your Body, Mind & Soul')) ?></h1>
-        <p class="hero-sub"><?= Security::e(sec($sections, 'hero', 'content', 'Welcome to Harmony Wellness Center, where ancient healing traditions meet modern therapeutic practices. Our team helps you achieve physical, mental, and emotional balance with personalized natural care.')) ?></p>
+        <p class="hero-sub"><?= Security::e(sec($sections, 'hero', 'content', 'Welcome to Chitrawan Nature Cure Hospital, where ancient healing traditions meet modern therapeutic practices. Our team helps you achieve physical, mental, and emotional balance with personalized natural care.')) ?></p>
         <div class="button-row">
             <?php foreach (sec_buttons($sections, 'hero') as $b): ?>
                 <a class="btn btn-<?= Security::e($b['style']) ?>" href="<?= Security::e(sec_url($b['url'])) ?>"><?= Security::e($b['label']) ?><?php if ($b['style'] === 'primary'): ?><svg class="icon"><use href="#icon-arrow"/></svg><?php endif; ?></a>
@@ -42,7 +42,7 @@
 <section class="section">
     <div class="container split">
         <div class="media-frame reveal">
-            <img src="<?= Security::e(sec($sections, 'about_intro', 'image')) ?>" alt="A calming yoga session at Harmony Wellness Center" loading="lazy">
+            <img src="<?= Security::e(sec($sections, 'about_intro', 'image')) ?>" alt="A calming yoga session at Chitrawan Nature Cure Hospital" loading="lazy">
             <div class="media-badge">
                 <?php $badge = sec($sections, 'about_intro', 'sub_content', 'Since 2010|Healing with care & compassion'); ?>
                 <?php [$badgeTitle, $badgeText] = array_pad(explode('|', $badge, 2), 2, ''); ?>
@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="reveal" style="--d:.12s">
-            <span class="kicker"><?= Security::e(sec($sections, 'about_intro', 'kicker', 'About Harmony')) ?></span>
+            <span class="kicker"><?= Security::e(sec($sections, 'about_intro', 'kicker', 'About Chitrawan')) ?></span>
             <h2><?= Security::e(sec($sections, 'about_intro', 'heading', 'Healing Naturally, Living Fully')) ?></h2>
             <p><?= Security::e(sec($sections, 'about_intro', 'content', '')) ?></p>
             <ul class="check-list">
@@ -83,7 +83,7 @@
                             <article class="carousel-card">
                                 <div class="carousel-card-media">
                                     <?php if (!empty($f['image'])): ?>
-                                        <img src="<?= Security::e($f['image']) ?>" alt="<?= Security::e($f['title'] ?? 'Why choose Harmony') ?>" loading="lazy">
+                                        <img src="<?= Security::e($f['image']) ?>" alt="<?= Security::e($f['title'] ?? 'Why choose Chitrawan') ?>" loading="lazy">
                                     <?php endif; ?>
                                 </div>
                                 <span class="carousel-card-icon" aria-hidden="true"><svg class="icon"><use href="#<?= Security::e($f['icon'] ?? 'icon-leaf') ?>"/></svg></span>
@@ -144,7 +144,7 @@
 </section>
 
 <!-- ============ Testimonials ============ -->
-<section class="section sand">
+<section class="section sand" id="reviews">
     <div class="container">
         <div class="section-head center reveal">
             <span class="kicker"><?= Security::e(sec($sections, 'testimonials', 'kicker', 'Patient Stories')) ?></span>
@@ -169,6 +169,47 @@
                 </article>
             <?php $i++; endforeach; ?>
         </div>
+
+        <!-- Write a Review Form -->
+        <div class="review-form-card reveal" style="--d:.15s">
+            <h3>Share Your Experience</h3>
+            <p>Had a session with us? We'd love to hear about your journey. Your review will appear after a quick approval.</p>
+            <form action="<?= BASE_URL ?>/review" method="post" class="contact-form review-form">
+                <input type="hidden" name="csrf_token" value="<?= Security::e(Security::csrfToken()) ?>">
+                <!-- Honeypot -->
+                <div class="hp-field" aria-hidden="true">
+                    <label for="review-website">Website</label>
+                    <input type="text" id="review-website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <input type="hidden" name="form_loaded_at" value="<?= (int) ($_SESSION['review_form_ts'] ?? time()) ?>">
+                <div class="form-row">
+                    <div>
+                        <label for="review_name">Your Name <span class="required">*</span></label>
+                        <input type="text" id="review_name" name="review_name" required minlength="2" maxlength="120" placeholder="e.g. Suman P.">
+                    </div>
+                    <div>
+                        <label for="review_role">Treatment / Program</label>
+                        <input type="text" id="review_role" name="review_role" maxlength="120" placeholder="e.g. 7-Day Yoga Retreat">
+                    </div>
+                </div>
+                <div>
+                    <label>Your Rating <span class="required">*</span></label>
+                    <div class="rating-input" role="radiogroup" aria-label="Rating">
+                        <?php for ($r = 5; $r >= 1; $r--): ?>
+                            <label class="rating-star" title="<?= $r ?> star<?= $r > 1 ? 's' : '' ?>">
+                                <input type="radio" name="review_rating" value="<?= $r ?>" <?= $r === 5 ? 'checked' : '' ?> required>
+                                <svg class="icon"><use href="#icon-star"/></svg>
+                            </label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+                <div>
+                    <label for="review_quote">Your Review <span class="required">*</span></label>
+                    <textarea id="review_quote" name="review_quote" rows="4" required minlength="10" maxlength="2000" placeholder="Tell us about your experience at Chitrawan Nature Cure Hospital..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark">Submit Review <svg class="icon"><use href="#icon-arrow"/></svg></button>
+            </form>
+        </div>
     </div>
 </section>
 
@@ -176,7 +217,7 @@
 <section class="section alt story-section">
     <div class="container split reverse">
         <div class="media-frame reveal">
-            <img src="<?= Security::e(sec($sections, 'story', 'image')) ?>" alt="The story of Harmony Wellness Center" loading="lazy">
+            <img src="<?= Security::e(sec($sections, 'story', 'image')) ?>" alt="The story of Chitrawan Nature Cure Hospital" loading="lazy">
             <div class="media-badge">
                 <?php $since = sec($sections, 'story', 'sub_content', '12+ Years|Of natural healing'); ?>
                 <?php [$badgeTitle, $badgeText] = array_pad(explode('|', $since, 2), 2, ''); ?>

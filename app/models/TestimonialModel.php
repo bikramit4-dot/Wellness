@@ -16,10 +16,8 @@ class TestimonialModel
         $pdo = Database::pdo();
         if ($pdo !== null) {
             try {
-                // If the table exists, its rows are authoritative — an
-                // intentionally empty section stays empty (admins can
-                // delete every item without the seed data returning).
-                $rows = $pdo->query('SELECT * FROM ' . self::TABLE . ' ORDER BY sort_order, id')->fetchAll();
+                // Public view: only show approved testimonials.
+                $rows = $pdo->query('SELECT * FROM ' . self::TABLE . " WHERE status = 'approved' ORDER BY sort_order, id")->fetchAll();
 
                 return array_map(static fn (array $r): array => [
                     'id' => (int) $r['id'],
@@ -29,6 +27,7 @@ class TestimonialModel
                     'avatar' => (string) ($r['avatar'] ?? 'a1'),
                     'rating' => (int) ($r['rating'] ?? 5),
                     'quote' => (string) ($r['quote'] ?? ''),
+                    'status' => (string) ($r['status'] ?? 'approved'),
                     'sort_order' => (int) ($r['sort_order'] ?? 0),
                 ], $rows);
             } catch (Throwable $e) {
@@ -42,6 +41,88 @@ class TestimonialModel
         }
 
         return [];
+    }
+
+    /**
+     * Admin view: return all testimonials regardless of status.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function allAdmin(): array
+    {
+        $pdo = Database::pdo();
+        if ($pdo !== null) {
+            try {
+                $rows = $pdo->query('SELECT * FROM ' . self::TABLE . ' ORDER BY status ASC, sort_order, id DESC')->fetchAll();
+
+                return array_map(static fn (array $r): array => [
+                    'id' => (int) $r['id'],
+                    'name' => (string) $r['name'],
+                    'role' => (string) ($r['role'] ?? ''),
+                    'initials' => (string) ($r['initials'] ?? ''),
+                    'avatar' => (string) ($r['avatar'] ?? 'a1'),
+                    'rating' => (int) ($r['rating'] ?? 5),
+                    'quote' => (string) ($r['quote'] ?? ''),
+                    'status' => (string) ($r['status'] ?? 'pending'),
+                    'sort_order' => (int) ($r['sort_order'] ?? 0),
+                ], $rows);
+            } catch (Throwable $e) {
+                error_log('[TestimonialModel] allAdmin failed: ' . $e->getMessage());
+            }
+        }
+
+        return self::all(false);
+    }
+
+    /**
+     * Update the status of a testimonial (approve / reject).
+     */
+    public static function updateStatus(int $id, string $status): bool
+    {
+        if (!in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            return false;
+        }
+
+        $pdo = Database::pdo();
+        if ($pdo === null) {
+            return false;
+        }
+
+        try {
+            $stmt = $pdo->prepare('UPDATE ' . self::TABLE . ' SET status = ? WHERE id = ?');
+            $stmt->execute([$status, $id]);
+
+            return $stmt->rowCount() > 0;
+        } catch (Throwable $e) {
+            error_log('[TestimonialModel] updateStatus failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Count testimonials by status.
+     *
+     * @return array{pending: int, approved: int, rejected: int, total: int}
+     */
+    public static function statusCounts(): array
+    {
+        $counts = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'total' => 0];
+
+        $pdo = Database::pdo();
+        if ($pdo !== null) {
+            try {
+                $rows = $pdo->query('SELECT status, COUNT(*) AS cnt FROM ' . self::TABLE . ' GROUP BY status')->fetchAll();
+                foreach ($rows as $r) {
+                    $s = (string) $r['status'];
+                    $counts[$s] = (int) $r['cnt'];
+                    $counts['total'] += (int) $r['cnt'];
+                }
+            } catch (Throwable $e) {
+                error_log('[TestimonialModel] statusCounts failed: ' . $e->getMessage());
+            }
+        }
+
+        return $counts;
     }
 
     /**

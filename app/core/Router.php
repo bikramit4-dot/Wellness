@@ -28,6 +28,18 @@ class Router
             return;
         }
 
+        if ($method === 'POST' && $path === '/qr-payment') {
+            $controller = new QrPaymentController();
+            $controller->store();
+            return;
+        }
+
+        if ($method === 'POST' && $path === '/review') {
+            $controller = new ReviewController();
+            $controller->store();
+            return;
+        }
+
         if (str_starts_with($path, '/admin')) {
             $controller = new AdminController();
 
@@ -49,6 +61,20 @@ class Router
                 return;
             }
 
+            // Notification actions
+            if ($path === '/admin/notifications/updates') {
+                $controller->notificationsUpdates();
+                return;
+            }
+            if ($method === 'POST' && $path === '/admin/notifications/read-all') {
+                $controller->notificationsMarkAllRead();
+                return;
+            }
+            if ($method === 'POST' && preg_match('#^/admin/notifications/read/(.+)$#', $path, $m)) {
+                $controller->notificationsMarkRead($m[1]);
+                return;
+            }
+
             switch ($path) {
                 case '/admin/login':
                     if ($method === 'POST') {
@@ -56,6 +82,12 @@ class Router
                     } else {
                         $controller->showLogin();
                     }
+                    break;
+                case '/admin/google-login':
+                    $controller->googleLogin();
+                    break;
+                case '/admin/google-callback':
+                    $controller->googleCallback();
                     break;
                 case '/admin/logout':
                     $controller->logout();
@@ -85,6 +117,24 @@ class Router
                     break;
                 case '/admin/appointments':
                     $controller->appointments();
+                    break;
+                case '/admin/qr-payments':
+                    $controller->qrPayments();
+                    break;
+                case '/admin/qr-status':
+                    $controller->qrStatus();
+                    break;
+                case '/admin/qr-delete':
+                    $controller->qrDelete();
+                    break;
+                case '/admin/reviews':
+                    $controller->reviews();
+                    break;
+                case '/admin/review-status':
+                    $controller->reviewStatus();
+                    break;
+                case '/admin/review-delete':
+                    $controller->reviewDelete();
                     break;
                 default:
                     $controller->dashboard();

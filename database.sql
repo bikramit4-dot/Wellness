@@ -1,5 +1,5 @@
 -- ==========================================================================
--- Harmony Wellness Center — Database Schema
+-- Chitrawan Nature Cure Hospital — Database Schema
 -- Apply with:  mysql -u root < database.sql
 -- ==========================================================================
 
@@ -21,8 +21,29 @@ CREATE TABLE IF NOT EXISTS appointments (
     date        VARCHAR(20)  NOT NULL DEFAULT '',
     time        VARCHAR(20)  NOT NULL DEFAULT '',
     message     TEXT         NULL,
-    status      ENUM('new', 'confirmed', 'completed') NOT NULL DEFAULT 'new',
+    status      ENUM('new', 'confirmed', 'rejected', 'completed') NOT NULL DEFAULT 'new',
     created_at  DATETIME     NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_created_at (created_at),
+    KEY idx_status (status)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------
+-- Advance payments via QR code (submitted through the Tariff page)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS qr_payments (
+    id             CHAR(16)     NOT NULL,
+    name           VARCHAR(120) NOT NULL,
+    email          VARCHAR(190) NOT NULL,
+    phone          VARCHAR(40)  NOT NULL DEFAULT '',
+    address        VARCHAR(300) NOT NULL DEFAULT '',
+    package        VARCHAR(120) NOT NULL DEFAULT '',
+    amount         VARCHAR(40)  NOT NULL DEFAULT '',
+    transaction_id VARCHAR(120) NOT NULL DEFAULT '',
+    message        TEXT         NULL,
+    screenshot     VARCHAR(300) NOT NULL DEFAULT '',
+    status         ENUM('new', 'verified', 'rejected') NOT NULL DEFAULT 'new',
+    created_at     DATETIME     NOT NULL,
     PRIMARY KEY (id),
     KEY idx_created_at (created_at),
     KEY idx_status (status)
@@ -32,6 +53,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 -- Therapy pages (one row per therapy, content JSON-encoded)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS therapies (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,  -- numeric id for the admin content manager
     slug        VARCHAR(80)  NOT NULL,
     category    VARCHAR(40)  NOT NULL,
     title       VARCHAR(120) NOT NULL,
@@ -83,6 +105,7 @@ CREATE TABLE IF NOT EXISTS testimonials (
     avatar      VARCHAR(8)   NOT NULL DEFAULT 'a1',
     rating      TINYINT      NOT NULL DEFAULT 5,
     quote       TEXT         NULL,
+    status      ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'approved',
     sort_order  INT          NOT NULL DEFAULT 0
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -155,9 +178,11 @@ CREATE TABLE IF NOT EXISTS offers (
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS admin_users (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email         VARCHAR(190) NOT NULL DEFAULT '',
     username      VARCHAR(60)  NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     display_name  VARCHAR(120) NOT NULL DEFAULT '',
+    role          ENUM('admin', 'staff') NOT NULL DEFAULT 'admin',
     created_at    DATETIME     NOT NULL,
     updated_at    DATETIME     NOT NULL,
     UNIQUE KEY uq_admin_username (username)

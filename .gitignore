@@ -3,6 +3,7 @@
 *.swp
 
 # ── Local environment junk (do not commit) ───────────────
+.env
 cj.txt
 _test_unlock.sh
 

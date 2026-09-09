@@ -14,14 +14,25 @@
 <!-- ============ SVG Icon Sprite ============ -->
 <?php require APP_ROOT . '/app/views/partials/icons.php'; ?>
 
+<?php
+// Load site-wide sections for the top bar (shared with brand.php)
+if (!isset($GLOBALS['__siteSectionsLoaded'])) {
+    $GLOBALS['__siteSectionsLoaded'] = true;
+    $GLOBALS['__siteSections'] = PageSectionModel::forPage('site');
+}
+$_topbar = $GLOBALS['__siteSections']['topbar'] ?? [];
+$_topbarPhone = trim((string) ($_topbar['link'] ?? '+977-9800000000'));
+$_topbarEmail = trim((string) ($_topbar['sub_content'] ?? 'info@chitrawannaturecure.com'));
+$_topbarHours = trim((string) ($_topbar['kicker'] ?? 'Sun – Fri: 8:00 AM – 7:00 PM'));
+?>
 <!-- ============ Utility Top Bar ============ -->
 <div class="topbar">
     <div class="container">
         <div class="topbar-info">
-            <a href="tel:+9779800000000"><svg class="icon icon-sm"><use href="#icon-phone"/></svg> +977-9800000000</a>
-            <a href="mailto:info@harmonywellness.com"><svg class="icon icon-sm"><use href="#icon-mail"/></svg> info@harmonywellness.com</a>
+            <a href="tel:<?= Security::e(preg_replace('/[^+\d]/', '', $_topbarPhone)) ?>"><svg class="icon icon-sm"><use href="#icon-phone"/></svg> <?= Security::e($_topbarPhone) ?></a>
+            <a href="mailto:<?= Security::e($_topbarEmail) ?>"><svg class="icon icon-sm"><use href="#icon-mail"/></svg> <?= Security::e($_topbarEmail) ?></a>
         </div>
-        <div class="topbar-hours"><svg class="icon icon-sm"><use href="#icon-clock"/></svg> Sun – Fri: 8:00 AM – 7:00 PM</div>
+        <div class="topbar-hours"><svg class="icon icon-sm"><use href="#icon-clock"/></svg> <?= Security::e($_topbarHours) ?></div>
     </div>
 </div>
 

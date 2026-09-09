@@ -6,7 +6,7 @@
  */
 class AppointmentModel
 {
-    private const STATUSES = ['new', 'confirmed', 'completed'];
+    private const STATUSES = ['new', 'confirmed', 'rejected', 'completed'];
 
     /* ------------------------------------------------------------------ */
     /* Public API (same for DB and file backends)                         */
@@ -14,6 +14,7 @@ class AppointmentModel
 
     public function save(string $name, string $email, string $phone, string $treatment, string $date, string $time, string $message): void
     {
+        error_log('[AppointmentModel] save() called: name=' . $name . ', email=' . $email);
         $data = [
             'id' => bin2hex(random_bytes(8)),
             'name' => $name,
@@ -89,6 +90,32 @@ class AppointmentModel
         return $this->deleteFromFile($id);
     }
 
+    /**
+     * Count appointments with the given status.
+     */
+    public function countByStatus(string $status): int
+    {
+        $pdo = Database::pdo();
+        if ($pdo !== null) {
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM appointments WHERE status = ?');
+                $stmt->execute([$status]);
+                return (int) $stmt->fetchColumn();
+            } catch (Throwable $e) {
+                error_log('[AppointmentModel] countByStatus failed: ' . $e->getMessage());
+            }
+        }
+
+        // File fallback
+        $count = 0;
+        foreach ($this->allFromFile() as $row) {
+            if (($row['status'] ?? 'new') === $status) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
     public function updateStatus(string $id, string $status): bool
     {
         if (!in_array($status, self::STATUSES, true)) {
@@ -137,7 +164,12 @@ class AppointmentModel
         @chmod($file, 0666);
 
         $line = json_encode($data, JSON_UNESCAPED_SLASHES) . PHP_EOL;
-        file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+        $bytes = file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+        if ($bytes === false) {
+            error_log('[AppointmentModel] Failed to write to ' . $file);
+        } else {
+            error_log('[AppointmentModel] Saved appointment to file: ' . $data['id'] . ' (' . $bytes . ' bytes)');
+        }
     }
 
     /**

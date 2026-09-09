@@ -1,7 +1,10 @@
 <?php
 class AdminController extends Controller
 {
-    private const ALLOWED_STATUSES = ['new', 'confirmed', 'completed'];
+    private const ALLOWED_STATUSES = ['new', 'confirmed', 'rejected', 'completed'];
+
+    /** Statuses for QR advance payments. */
+    private const QR_STATUSES = ['new', 'verified', 'rejected'];
 
     /**
      * Content sections manageable from /admin/content/*.
@@ -26,7 +29,7 @@ class AdminController extends Controller
             'fields' => [
                 ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
                 ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
-                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer. Images are auto-optimized to WebP for faster loading.'],
                 ['name' => 'alt', 'label' => 'Alt text', 'type' => 'text', 'hint' => 'Accessible description of the image.'],
                 ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number', 'hint' => 'Lower numbers appear first.'],
             ],
@@ -140,7 +143,7 @@ class AdminController extends Controller
             'fields' => [
                 ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
                 ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
-                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer. Images are auto-optimized to WebP for faster loading.'],
                 ['name' => 'icon', 'label' => 'Icon', 'type' => 'select', 'options' => ['icon-users', 'icon-heart', 'icon-leaf', 'icon-shield', 'icon-sun', 'icon-moon', 'icon-activity', 'icon-droplet', 'icon-zap', 'icon-clock']],
                 ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
             ],
@@ -162,10 +165,36 @@ class AdminController extends Controller
             'fields' => [
                 ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'required' => true],
                 ['name' => 'description', 'label' => 'Description', 'type' => 'textarea'],
-                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'image', 'label' => 'Image', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer. Images are auto-optimized to WebP for faster loading.'],
                 ['name' => 'icon', 'label' => 'Icon', 'type' => 'select', 'options' => ['icon-users', 'icon-heart', 'icon-leaf', 'icon-shield', 'icon-sun', 'icon-moon', 'icon-activity', 'icon-droplet', 'icon-zap', 'icon-clock']],
                 ['name' => 'link', 'label' => 'Page link', 'type' => 'text', 'hint' => 'Where the card links to, e.g. /treatments/naturopathy (defaults to /treatments).'],
                 ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
+            ],
+        ],
+        'therapies' => [
+            'label' => 'Therapies',
+            'plural' => 'Therapies',
+            'icon' => 'icon-activity',
+            'model' => TherapyModel::class,
+            'all' => 'allAdmin',
+            'find' => 'findAdmin',
+            'save' => 'saveAdmin',
+            'delete' => 'deleteAdmin',
+            'listColumns' => [
+                ['key' => 'title', 'label' => 'Therapy'],
+                ['key' => 'categoryLabel', 'label' => 'Category'],
+                ['key' => 'methodsCount', 'label' => 'Techniques'],
+                ['key' => 'image', 'label' => 'Photo', 'type' => 'image'],
+            ],
+            'fields' => [
+                ['name' => 'title', 'label' => 'Therapy name', 'type' => 'text', 'required' => true],
+                ['name' => 'category', 'label' => 'Category', 'type' => 'select', 'options' => ['Treatments | /treatments', 'Physiotherapy | /physiotherapy', 'Diet Therapy | /diet-therapy', 'Special Therapies | /special-therapies']],
+                ['name' => 'icon', 'label' => 'Icon', 'type' => 'select', 'options' => ['icon-leaf', 'icon-activity', 'icon-moon', 'icon-zap', 'icon-heart', 'icon-shield', 'icon-sun', 'icon-droplet', 'icon-wind', 'icon-clock', 'icon-users', 'icon-star']],
+                ['name' => 'image', 'label' => 'Photo', 'type' => 'image', 'hint' => 'Paste an image URL, or upload a file from your computer.'],
+                ['name' => 'intro', 'label' => 'Intro (short)', 'type' => 'textarea', 'hint' => 'One line shown on the category cards.'],
+                ['name' => 'about', 'label' => 'About paragraphs', 'type' => 'list', 'hint' => 'One paragraph per line.'],
+                ['name' => 'methods', 'label' => 'Techniques & Methods', 'type' => 'methods', 'hint' => 'One per line, format: Title | Definition (the definition expands when clicked on the website).'],
+                ['name' => 'benefits', 'label' => 'Key Benefits', 'type' => 'list', 'hint' => 'One benefit per line.'],
             ],
         ],
     ];
@@ -184,8 +213,16 @@ class AdminController extends Controller
                 'brand' => [
                     'label' => 'Logo & Brand',
                     'fields' => [
-                        ['name' => 'image', 'label' => 'Logo image', 'type' => 'image', 'hint' => 'Upload your logo (or paste an image URL). Leave empty to keep the leaf icon + name.'],
-                        ['name' => 'heading', 'label' => 'Brand name', 'type' => 'text', 'hint' => 'Shown next to the logo, e.g. Harmony Wellness'],
+                        ['name' => 'image', 'label' => 'Logo image', 'type' => 'image', 'hint' => 'Upload your logo (or paste an image URL). Auto-optimized to WebP. Leave empty to keep the leaf icon + name.'],
+                        ['name' => 'heading', 'label' => 'Brand name', 'type' => 'text', 'hint' => 'Shown next to the logo, e.g. Chitrawan Nature Cure Hospital'],
+                    ],
+                ],
+                'topbar' => [
+                    'label' => 'Top Bar',
+                    'fields' => [
+                        ['name' => 'link', 'label' => 'Phone number', 'type' => 'text', 'hint' => 'e.g. +977-9800000000'],
+                        ['name' => 'sub_content', 'label' => 'Email address', 'type' => 'text', 'hint' => 'e.g. info@chitrawannaturecure.com'],
+                        ['name' => 'kicker', 'label' => 'Opening hours', 'type' => 'text', 'hint' => 'e.g. Sun – Fri: 8:00 AM – 7:00 PM'],
                     ],
                 ],
                 'footer' => [
@@ -360,7 +397,7 @@ class AdminController extends Controller
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
-                    ['name' => 'link', 'label' => 'Map query', 'type' => 'text', 'hint' => 'Address used in the Google Maps embed, e.g. Harmony Wellness Center, Kathmandu, Nepal'],
+                    ['name' => 'link', 'label' => 'Map query', 'type' => 'text', 'hint' => 'Address used in the Google Maps embed, e.g. Chitrawan Nature Cure Hospital Center, Bharatpur-15, Nepal'],
                 ]],
             ],
         ],
@@ -386,6 +423,14 @@ class AdminController extends Controller
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
                     ['name' => 'sub_content', 'label' => 'Footnote', 'type' => 'textarea'],
+                ]],
+                'qr' => ['label' => 'QR Code & Advance Payment', 'fields' => [
+                    ['name' => 'image', 'label' => 'QR code image', 'type' => 'image', 'hint' => 'Upload the QR code that patients scan to pay their advance. Auto-optimized to WebP.'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Intro paragraph', 'type' => 'textarea'],
+                    ['name' => 'sub_content', 'label' => 'Payment details line', 'type' => 'text', 'hint' => 'Shown under the QR code, e.g. UPI ID: chitrawan naturecure@upi'],
+                    ['name' => 'link_label', 'label' => 'Note below the steps', 'type' => 'text'],
+                    ['name' => 'extras', 'label' => 'How to pay (steps)', 'type' => 'list', 'hint' => 'One step per line.'],
                 ]],
             ],
         ],
@@ -459,7 +504,15 @@ class AdminController extends Controller
         $timeout = defined('ADMIN_SESSION_TIMEOUT') ? (int) ADMIN_SESSION_TIMEOUT : 1800;
         $lastActivity = (int) ($_SESSION['admin_last_activity'] ?? 0);
         if ($lastActivity > 0 && time() - $lastActivity > $timeout) {
-            unset($_SESSION['admin_logged_in'], $_SESSION['admin_username'], $_SESSION['admin_display_name'], $_SESSION['admin_last_activity']);
+            unset(
+            $_SESSION['admin_logged_in'],
+            $_SESSION['admin_username'],
+            $_SESSION['admin_display_name'],
+            $_SESSION['admin_email'],
+            $_SESSION['admin_avatar'],
+            $_SESSION['admin_auth_method'],
+            $_SESSION['admin_last_activity']
+        );
             session_regenerate_id(true);
             $this->setFlash('danger', 'Your session expired after inactivity. Please sign in again.');
             $this->redirect('/admin/login');
@@ -486,10 +539,10 @@ class AdminController extends Controller
             return;
         }
 
-        $username = strtolower((string) ($_SESSION['admin_username'] ?? ''));
+        $login = strtolower((string) ($_SESSION['admin_username'] ?? $_SESSION['admin_email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
 
-        if ($username === '' || !$this->credentialsValid($username, $password)) {
+        if ($login === '' || $this->credentialsValid($login, $password) === null) {
             $this->json(['ok' => false, 'message' => 'Incorrect password.']);
             return;
         }
@@ -542,16 +595,21 @@ class AdminController extends Controller
             $this->redirect('/admin/login');
         }
 
-        $username = strtolower(Security::sanitizeText($_POST['username'] ?? ''));
+        // Accept email or username as login.
+        $login = strtolower(Security::sanitizeText($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
 
-        if (!$this->credentialsValid($username, $password)) {
+        error_log('[Login] Attempt: login="' . $login . '" password_len=' . strlen($password) . ' raw_post_username="' . (string)($_POST['username'] ?? '') . '"');
+
+        $dbUser = $this->credentialsValid($login, $password);
+        if ($dbUser === null) {
+            error_log('[Login] FAILED for "' . $login . '"');
             $this->recordFailedAttempt($ip);
             if ($this->lockoutRemaining($ip) > 0) {
                 $this->setFlash('danger', 'Too many failed attempts. Please wait a few minutes and try again.');
             } else {
                 $left = max(0, 5 - (int) ($this->readAttempts()[$ip]['count'] ?? 0));
-                $this->setFlash('danger', 'Invalid username or password.' . ($left > 0 ? ' ' . $left . ' attempt(s) left.' : ''));
+                $this->setFlash('danger', 'Invalid email or password.' . ($left > 0 ? ' ' . $left . ' attempt(s) left.' : ''));
             }
             $this->redirect('/admin/login');
         }
@@ -559,16 +617,16 @@ class AdminController extends Controller
         $this->clearAttempts($ip);
         session_regenerate_id(true);
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_username'] = $username;
+        $_SESSION['admin_username'] = (string) ($dbUser['username'] ?? $login);
+        $_SESSION['admin_email'] = (string) ($dbUser['email'] ?? $login);
+        $_SESSION['admin_role'] = (string) ($dbUser['role'] ?? 'admin');
         $_SESSION['admin_last_activity'] = time();
 
         // Show the display name (if set) in the admin header.
-        $dbUser = AdminUserModel::findByUsername($username);
-        $_SESSION['admin_display_name'] = ($dbUser !== null && trim((string) ($dbUser['display_name'] ?? '')) !== '')
-            ? trim((string) $dbUser['display_name'])
-            : $username;
+        $displayName = trim((string) ($dbUser['display_name'] ?? ''));
+        $_SESSION['admin_display_name'] = $displayName !== '' ? $displayName : (string) ($dbUser['username'] ?? $login);
 
-        $this->setFlash('success', 'Welcome back, ' . $username . '!');
+        $this->setFlash('success', 'Welcome back, ' . $_SESSION['admin_display_name'] . '!');
         $this->redirect('/admin');
     }
 
@@ -577,19 +635,38 @@ class AdminController extends Controller
      * first, then fall back to ADMIN_USERNAME / ADMIN_PASSWORD_HASH from
      * config.php (which always works, even if the database is unavailable).
      */
-    private function credentialsValid(string $username, string $password): bool
+    /**
+     * Verify credentials. Accepts email or username.
+     * Returns the user row on success, null on failure.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function credentialsValid(string $login, string $password): ?array
     {
         $password = trim($password);
+        $login = strtolower(trim($login));
 
-        // Database users (managed from Admin → Users).
-        $dbUser = AdminUserModel::findByUsername($username);
-        if ($dbUser !== null && password_verify($password, (string) ($dbUser['password_hash'] ?? ''))) {
-            return true;
+        error_log('[Auth] credentialsValid: login="' . $login . '" password_len=' . strlen($password));
+
+        // Database users: try email first, then username.
+        $dbUser = AdminUserModel::findByEmail($login);
+        error_log('[Auth] findByEmail: ' . ($dbUser ? 'FOUND' : 'NULL'));
+        if ($dbUser === null) {
+            $dbUser = AdminUserModel::findByUsername($login);
+            error_log('[Auth] findByUsername: ' . ($dbUser ? 'FOUND' : 'NULL'));
+        }
+        if ($dbUser !== null) {
+            $hash = (string) ($dbUser['password_hash'] ?? '');
+            $verify = password_verify($password, $hash);
+            error_log('[Auth] password_verify: ' . ($verify ? 'PASS' : 'FAIL') . ' hash_len=' . strlen($hash));
+            if ($verify) {
+                return $dbUser;
+            }
         }
 
         // Fallback: the original config-defined admin.
         $expectedUser = defined('ADMIN_USERNAME') ? strtolower(trim((string) ADMIN_USERNAME)) : '';
-        $userOk = $expectedUser !== '' && hash_equals($expectedUser, strtolower(trim($username)));
+        $userOk = $expectedUser !== '' && hash_equals($expectedUser, $login);
 
         $hash = defined('ADMIN_PASSWORD_HASH') ? ADMIN_PASSWORD_HASH : '';
         $passOk = $hash !== '' && password_verify($password, $hash);
@@ -600,7 +677,94 @@ class AdminController extends Controller
             password_verify($password, $hash !== '' ? $hash : '$2y$12$rN9fY4vX1dKpQmWcT0nE7uL2sBzHj8gQaR6tY0eW5nIuM3pVbCzXaK');
         }
 
-        return $userOk && $passOk;
+        if ($userOk && $passOk) {
+            // Return a fake row for the config-defined admin (always 'admin' role)
+            return [
+                'id' => 0,
+                'email' => $expectedUser,
+                'username' => $expectedUser,
+                'display_name' => 'Admin',
+                'role' => 'admin',
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the current user has the given role.
+     * Config-defined admin always has 'admin' role.
+     */
+    private function userRole(): string
+    {
+        return (string) ($_SESSION['admin_role'] ?? 'admin');
+    }
+
+    private function isAdmin(): bool
+    {
+        return $this->userRole() === 'admin';
+    }
+
+    /**
+     * Require admin role. Staff users get redirected to bookings.
+     */
+    private function requireAdmin(): void
+    {
+        $this->requireAuth();
+        if (!$this->isAdmin()) {
+            $this->setFlash('danger', 'You do not have permission to access that page.');
+            $this->redirect('/admin/appointments');
+        }
+    }
+
+    /* ---------- Google OAuth login ---------- */
+
+    /**
+     * Redirect the admin to Google's OAuth consent screen.
+     */
+    public function googleLogin(): void
+    {
+        if (!GoogleOAuth::isConfigured()) {
+            $this->setFlash('danger', 'Google login is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.');
+            $this->redirect('/admin/login');
+        }
+
+        GoogleOAuth::redirect();
+    }
+
+    /**
+     * Handle the callback from Google after the user signs in.
+     */
+    public function googleCallback(): void
+    {
+        $result = GoogleOAuth::handleCallback();
+
+        if (!$result['ok']) {
+            $this->setFlash('danger', $result['error'] ?? 'Google login failed.');
+            $this->redirect('/admin/login');
+        }
+
+        $email = $result['email'];
+        $name  = $result['name'] ?? '';
+        $picture = $result['picture'] ?? '';
+
+        // Check if this email is in the DB (for role lookup)
+        $dbUser = AdminUserModel::findByEmail($email);
+        $role = ($dbUser !== null && isset($dbUser['role'])) ? $dbUser['role'] : 'admin';
+
+        // Log in the user via session
+        session_regenerate_id(true);
+        $_SESSION['admin_logged_in']    = true;
+        $_SESSION['admin_username']     = strtolower($email);
+        $_SESSION['admin_display_name'] = $name !== '' ? $name : $email;
+        $_SESSION['admin_email']        = $email;
+        $_SESSION['admin_avatar']       = $picture;
+        $_SESSION['admin_role']         = $role;
+        $_SESSION['admin_auth_method']  = 'google';
+        $_SESSION['admin_last_activity'] = time();
+
+        $this->setFlash('success', 'Welcome, ' . ($name !== '' ? $name : $email) . '!');
+        $this->redirect('/admin');
     }
 
     /* ---------- Brute-force protection (IP-based) ---------- */
@@ -782,7 +946,15 @@ class AdminController extends Controller
             $this->redirect('/admin/login');
         }
 
-        unset($_SESSION['admin_logged_in'], $_SESSION['admin_username'], $_SESSION['admin_display_name'], $_SESSION['admin_last_activity']);
+        unset(
+            $_SESSION['admin_logged_in'],
+            $_SESSION['admin_username'],
+            $_SESSION['admin_display_name'],
+            $_SESSION['admin_email'],
+            $_SESSION['admin_avatar'],
+            $_SESSION['admin_auth_method'],
+            $_SESSION['admin_last_activity']
+        );
         session_regenerate_id(true);
 
         $this->setFlash('success', 'You have been logged out.');
@@ -797,6 +969,9 @@ class AdminController extends Controller
 
         $appointments = (new AppointmentModel())->all();
         $counts = $this->statusCounts($appointments);
+
+        $qrPayments = (new QrPaymentModel())->all();
+        $qrCounts = $this->qrCounts($qrPayments);
 
         $week = 0;
         $prevWeek = 0;
@@ -861,8 +1036,77 @@ class AdminController extends Controller
             'activity' => array_values($activity),
             'popularTreatments' => $popularTreatments,
             'recentAppointments' => array_slice($appointments, 0, 6),
+            'recentQrPayments' => array_slice($qrPayments, 0, 5),
+            'qrCounts' => $qrCounts,
             'sections' => $this->sectionSummaries(),
         ]);
+    }
+
+    /* ---------- Notifications ---------- */
+
+    public function notificationsMarkAllRead(): void
+    {
+        $this->requireAuth();
+        if (!$this->requireValidCsrf()) {
+            $this->redirect('/admin');
+        }
+        NotificationModel::markAllRead();
+        $this->redirect($_SERVER['HTTP_REFERER'] ?? '/admin');
+    }
+
+    public function notificationsMarkRead(string $id): void
+    {
+        $this->requireAuth();
+        if (!$this->requireValidCsrf()) {
+            $this->redirect('/admin');
+        }
+        NotificationModel::markRead($id);
+        $this->redirect($_SERVER['HTTP_REFERER'] ?? '/admin');
+    }
+
+    /* ---------- Real-time notifications (AJAX) ---------- */
+
+    /**
+     * GET /admin/notifications/updates — returns new notifications as JSON.
+     * The client polls this endpoint every few seconds for real-time updates.
+     */
+    public function notificationsUpdates(): void
+    {
+        if (empty($_SESSION['admin_logged_in'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'error' => 'Not authenticated']);
+            exit;
+        }
+
+        $since = (int) ($_GET['since'] ?? 0);
+        $all = NotificationModel::all();
+        $unread = NotificationModel::unreadCount();
+
+        // Filter notifications newer than the client's last known timestamp
+        $new = [];
+        if ($since > 0) {
+            foreach ($all as $n) {
+                $ts = strtotime((string) ($n['created_at'] ?? ''));
+                if ($ts !== false && $ts > $since) {
+                    $new[] = $n;
+                }
+            }
+        }
+
+        // Also get the current appointment/payment counts for the sidebar badges
+        $apptNew = (new AppointmentModel())->countByStatus('new');
+        $qrNew = self::qrNewCount();
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'ok' => true,
+            'unread' => $unread,
+            'new' => array_slice($new, 0, 10),
+            'appt_new' => $apptNew,
+            'qr_new' => $qrNew,
+            'time' => time(),
+        ]);
+        exit;
     }
 
     /* ---------- Cache control ---------- */
@@ -935,7 +1179,7 @@ class AdminController extends Controller
 
     /**
      * @param array<int, array<string, mixed>> $appointments
-     * @return array{total: int, new: int, confirmed: int, completed: int}
+    * @return array{total: int, new: int, confirmed: int, rejected: int, completed: int}
      */
     private function statusCounts(array $appointments): array
     {
@@ -943,6 +1187,7 @@ class AdminController extends Controller
             'total' => count($appointments),
             'new' => 0,
             'confirmed' => 0,
+            'rejected' => 0,
             'completed' => 0,
         ];
         foreach ($appointments as $a) {
@@ -953,6 +1198,246 @@ class AdminController extends Controller
         }
 
         return $counts;
+    }
+
+    /* ---------- QR advance payments ---------- */
+
+    public function qrPayments(): void
+    {
+        $this->requireAuth();
+
+        $model = new QrPaymentModel();
+        $payments = $model->all();
+
+        $filter = Security::sanitizeText($_GET['status'] ?? '');
+        if (!in_array($filter, self::QR_STATUSES, true)) {
+            $filter = '';
+        }
+
+        $viewPayments = $filter === ''
+            ? $payments
+            : array_values(array_filter(
+                $payments,
+                static fn (array $p): bool => ($p['status'] ?? 'new') === $filter
+            ));
+
+        $this->render('admin/qr_payments', [
+            'title' => 'QR Advance Payments',
+            'layout' => 'admin',
+            'payments' => $viewPayments,
+            'counts' => $this->qrCounts($payments),
+            'filter' => $filter,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $payments
+     * @return array{total: int, new: int, verified: int, rejected: int}
+     */
+    private function qrCounts(array $payments): array
+    {
+        $counts = [
+            'total' => count($payments),
+            'new' => 0,
+            'verified' => 0,
+            'rejected' => 0,
+        ];
+        foreach ($payments as $p) {
+            $status = $p['status'] ?? 'new';
+            if (isset($counts[$status])) {
+                $counts[$status]++;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Number of QR payments still waiting for review — used by the admin
+     * navigation badge (and the dashboard).
+     */
+    public static function qrNewCount(): int
+    {
+        $pdo = Database::pdo();
+        if ($pdo === null) {
+            return 0;
+        }
+
+        try {
+            return (int) $pdo->query("SELECT COUNT(*) FROM qr_payments WHERE status = 'new'")->fetchColumn();
+        } catch (Throwable $e) {
+            error_log('[AdminController] qrNewCount failed: ' . $e->getMessage());
+
+            return 0;
+        }
+    }
+
+    public function qrStatus(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/qr-payments');
+            return;
+        }
+
+        $id = Security::sanitizeText($_POST['id'] ?? '');
+        $status = Security::sanitizeText($_POST['status'] ?? '');
+        $filter = Security::sanitizeText($_POST['filter'] ?? '');
+
+        if ($id !== '' && in_array($status, self::QR_STATUSES, true)) {
+            $model = new QrPaymentModel();
+            if ($model->updateStatus($id, $status)) {
+                $this->setFlash('success', 'Payment status updated.');
+
+                // Send email to customer when verified or rejected
+                if (in_array($status, ['verified', 'rejected'], true)) {
+                    $allPayments = $model->all();
+                    foreach ($allPayments as $p) {
+                        if (($p['id'] ?? '') === $id) {
+                            Mailer::sendPaymentStatusEmail($p, $status);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                $this->setFlash('danger', 'Could not update that payment.');
+            }
+        } else {
+            $this->setFlash('danger', 'Could not update that payment.');
+        }
+
+        $this->redirect(in_array($filter, self::QR_STATUSES, true)
+            ? '/admin/qr-payments?status=' . $filter
+            : '/admin/qr-payments');
+    }
+
+    public function qrDelete(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/qr-payments');
+            return;
+        }
+
+        $id = Security::sanitizeText($_POST['id'] ?? '');
+        $filter = Security::sanitizeText($_POST['filter'] ?? '');
+        $deleted = false;
+
+        if ($id !== '') {
+            $model = new QrPaymentModel();
+
+            // Remember the screenshot URL, delete the record first, and only
+            // remove the file once the record is gone — so a failed delete
+            // never leaves a record with a broken screenshot link.
+            $screenshot = '';
+            foreach ($model->all() as $p) {
+                if (($p['id'] ?? '') === $id) {
+                    $screenshot = (string) ($p['screenshot'] ?? '');
+                    break;
+                }
+            }
+
+            $deleted = $model->delete($id);
+            if ($deleted && $screenshot !== '') {
+                $this->deleteUploadedFile($screenshot);
+            }
+        }
+
+        if ($deleted) {
+            $this->setFlash('success', 'Payment record deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that payment.');
+        }
+
+        $this->redirect(in_array($filter, self::QR_STATUSES, true)
+            ? '/admin/qr-payments?status=' . $filter
+            : '/admin/qr-payments');
+    }
+
+    /* ---------- Customer Reviews ---------- */
+
+    public function reviews(): void
+    {
+        $this->requireAuth();
+
+        $filter = Security::sanitizeText($_GET['status'] ?? '');
+        $all = TestimonialModel::allAdmin();
+
+        // Filter by status if requested
+        if ($filter !== '' && in_array($filter, ['pending', 'approved', 'rejected'], true)) {
+            $all = array_filter($all, static fn (array $r): bool => ($r['status'] ?? 'pending') === $filter);
+        }
+
+        $counts = TestimonialModel::statusCounts();
+
+        $this->render('admin/reviews', [
+            'title' => 'Customer Reviews',
+            'layout' => 'admin',
+            'reviews' => array_values($all),
+            'counts' => $counts,
+            'filter' => $filter,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    public function reviewStatus(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/reviews');
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $status = Security::sanitizeText($_POST['status'] ?? '');
+        $filter = Security::sanitizeText($_POST['filter'] ?? '');
+
+        if ($id > 0 && in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            if (TestimonialModel::updateStatus($id, $status)) {
+                $this->setFlash('success', 'Review status updated to ' . $status . '.');
+            } else {
+                $this->setFlash('danger', 'Could not update review status.');
+            }
+        }
+
+        $redirect = '/admin/reviews';
+        if (in_array($filter, ['pending', 'approved', 'rejected'], true)) {
+            $redirect .= '?status=' . $filter;
+        }
+        $this->redirect($redirect);
+    }
+
+    public function reviewDelete(): void
+    {
+        $this->requireAuth();
+
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/reviews');
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $filter = Security::sanitizeText($_POST['filter'] ?? '');
+
+        if ($id > 0 && TestimonialModel::delete($id)) {
+            $this->setFlash('success', 'Review deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that review.');
+        }
+
+        $redirect = '/admin/reviews';
+        if (in_array($filter, ['pending', 'approved', 'rejected'], true)) {
+            $redirect .= '?status=' . $filter;
+        }
+        $this->redirect($redirect);
     }
 
     /**
@@ -985,7 +1470,7 @@ class AdminController extends Controller
      */
     public function content(string $method, string $path): void
     {
-        $this->requireAuth();
+        $this->requireAdmin();
 
         $rest = trim(substr($path, strlen('/admin/content')), '/');
         $segments = $rest === '' ? [] : explode('/', $rest);
@@ -1087,6 +1572,7 @@ class AdminController extends Controller
             'item' => $item,
             'isEdit' => $isEdit,
             'csrf' => Security::csrfToken(),
+            'backUrl' => BASE_URL . '/admin/content/' . $key,
         ]);
     }
 
@@ -1115,6 +1601,12 @@ class AdminController extends Controller
                     $lines = array_map('trim', $lines);
                     $lines = array_values(array_filter($lines, static fn (string $l): bool => $l !== ''));
                     $data[$name] = json_encode($lines, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    break;
+                case 'methods':
+                    $data[$name] = json_encode(
+                        TherapyModel::methodsFromLines($_POST[$name] ?? ''),
+                        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                    );
                     break;
                 case 'number':
                     $data[$name] = max(0, (int) ($_POST[$name] ?? 0));
@@ -1161,6 +1653,7 @@ class AdminController extends Controller
                 'item' => $data,
                 'isEdit' => $id > 0,
                 'csrf' => Security::csrfToken(),
+                'backUrl' => BASE_URL . '/admin/content/' . $key,
             ]);
             return;
         }
@@ -1170,9 +1663,17 @@ class AdminController extends Controller
             if ($previousImage !== null) {
                 $this->deleteUploadedFile($previousImage);
             }
+            clearstatcache(true);
             $this->setFlash('success', $section['label'] . ' item saved.');
         } else {
-            $this->setFlash('danger', 'Could not save. Is the database running?');
+            $lastErr = method_exists($section['model'], 'lastError') ? $section['model']::lastError() : '';
+            $msg = 'Could not save.';
+            if ($lastErr !== '') {
+                $msg .= ' ' . $lastErr;
+            } else {
+                $msg .= ' Is the database running?';
+            }
+            $this->setFlash('danger', $msg);
         }
 
         $this->redirect('/admin/content/' . $key);
@@ -1215,7 +1716,7 @@ class AdminController extends Controller
      */
     public function pages(string $method, string $path): void
     {
-        $this->requireAuth();
+        $this->requireAdmin();
 
         $rest = trim(substr($path, strlen('/admin/pages')), '/');
         $segments = $rest === '' ? [] : explode('/', $rest);
@@ -1402,9 +1903,17 @@ class AdminController extends Controller
             if ($previousImage !== null) {
                 $this->deleteUploadedFile($previousImage);
             }
+            clearstatcache(true);
             $this->setFlash('success', 'Section "' . $section['label'] . '" saved.');
         } else {
-            $this->setFlash('danger', 'Could not save. Is the database running?');
+            $errorDetail = PageSectionModel::lastError();
+            $msg = 'Could not save.';
+            if ($errorDetail !== '') {
+                $msg .= ' ' . $errorDetail;
+            } else {
+                $msg .= ' Is the database running?';
+            }
+            $this->setFlash('danger', $msg);
         }
 
         $this->redirect('/admin/pages/' . $pageKey);
@@ -1446,7 +1955,7 @@ class AdminController extends Controller
      */
     public function users(string $method, string $path): void
     {
-        $this->requireAuth();
+        $this->requireAdmin();
 
         $rest = trim(substr($path, strlen('/admin/users')), '/');
         $segments = $rest === '' ? [] : explode('/', $rest);
@@ -1518,6 +2027,7 @@ class AdminController extends Controller
             'user' => $user,
             'isEdit' => $isEdit,
             'csrf' => Security::csrfToken(),
+            'users' => AdminUserModel::all(),
         ]);
     }
 
@@ -1530,12 +2040,24 @@ class AdminController extends Controller
         }
 
         $id = (int) ($_POST['id'] ?? 0);
+        $email = strtolower(Security::sanitizeEmail($_POST['email'] ?? ''));
         $username = strtolower(Security::sanitizeText($_POST['username'] ?? ''));
         $displayName = Security::sanitizeText($_POST['display_name'] ?? '');
         $password = (string) ($_POST['password'] ?? '');
         $confirm = (string) ($_POST['confirm_password'] ?? '');
+        $role = in_array($_POST['role'] ?? '', ['admin', 'staff'], true) ? $_POST['role'] : 'admin';
 
         $errors = [];
+
+        // Email is required and must be valid.
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'A valid email address is required.';
+        }
+
+        // Auto-generate username from email if not provided.
+        if ($username === '') {
+            $username = str_replace(['.', '+'], ['_', ''], explode('@', $email)[0]);
+        }
         if (!preg_match('/^[a-z0-9_\-.]+$/', $username) || strlen($username) < 3 || strlen($username) > 40) {
             $errors[] = 'Username must be 3–40 characters using letters, numbers, dashes or underscores.';
         }
@@ -1550,7 +2072,13 @@ class AdminController extends Controller
             }
         }
 
-        // Username must be unique (and not the same user being edited).
+        // Email must be unique.
+        $existingEmail = AdminUserModel::findByEmail($email);
+        if ($existingEmail !== null && (int) $existingEmail['id'] !== $id) {
+            $errors[] = 'That email address is already registered.';
+        }
+
+        // Username must be unique.
         $existing = AdminUserModel::findByUsername($username);
         if ($existing !== null && (int) $existing['id'] !== $id) {
             $errors[] = 'That username is already taken.';
@@ -1564,17 +2092,25 @@ class AdminController extends Controller
 
         $passwordHash = $changingPassword ? password_hash($password, PASSWORD_DEFAULT) : null;
 
+        error_log('[saveUser] Saving: email=' . $email . ' username=' . $username . ' role=' . $role . ' hash_len=' . strlen((string) $passwordHash));
+
         $ok = $id > 0
-            ? AdminUserModel::update($id, $username, $passwordHash, $displayName)
-            : AdminUserModel::create($username, (string) $passwordHash, $displayName);
+            ? AdminUserModel::update($id, $email, $username, $passwordHash, $displayName, $role)
+            : AdminUserModel::create($email, $username, (string) $passwordHash, $displayName, $role);
 
         if ($ok) {
+            error_log('[saveUser] OK: id=' . $ok);
+            // Verify the user can be found immediately
+            $check = AdminUserModel::findByEmail($email);
+            error_log('[saveUser] Verification: findByEmail=' . ($check ? 'FOUND (hash_len=' . strlen((string)($check['password_hash'] ?? '')) . ')' : 'NOT FOUND!'));
             $this->setFlash('success', $id > 0 ? 'User updated.' : 'User created.');
         } else {
+            error_log('[saveUser] FAILED');
             $this->setFlash('danger', 'Could not save the user. Is the database running?');
         }
 
-        $this->redirect('/admin/users');
+        // Redirect back to the form page so the user sees the list below.
+        $this->redirect($id > 0 ? '/admin/users/edit?id=' . $id : '/admin/users/new');
     }
 
     private function deleteUser(): void
@@ -1645,27 +2181,87 @@ class AdminController extends Controller
             $this->redirect($redirect);
         }
 
-        $dir = APP_ROOT . '/public/uploads';
-        if (!is_dir($dir)) {
-            // 0777 so the web server user (e.g. XAMPP's 'daemon') can write to it.
-            @mkdir($dir, 0777, true);
-        }
-        @chmod($dir, 0777);
-
-        if (!is_writable($dir)) {
-            $this->setFlash('danger', 'Upload failed: the uploads folder is not writable by the web server.');
-            $this->redirect($redirect);
-        }
-
+        // Find a writable directory for the upload
         $filename = bin2hex(random_bytes(12)) . '.' . $allowed[$mime];
-        $dest = $dir . '/' . $filename;
-        if (!@move_uploaded_file($tmp, $dest)) {
-            $this->setFlash('danger', 'Upload failed: could not save the image.');
+        $dir = $this->findUploadDir();
+        if ($dir === '') {
+            error_log('[Admin] Upload: no writable directory found');
+            $this->setFlash('danger', 'Upload failed: could not find a writable uploads folder.');
             $this->redirect($redirect);
         }
-        @chmod($dest, 0666);
+        $dest = $dir . '/' . $filename;
 
-        return BASE_URL . '/public/uploads/' . $filename;
+        // Multi-strategy upload (handles open_basedir restrictions on shared hosting)
+        $ok = @move_uploaded_file($tmp, $dest);
+        if (!$ok) {
+            $ok = @copy($tmp, $dest);
+            if ($ok) @unlink($tmp);
+        }
+        if (!$ok) {
+            $content = @file_get_contents($tmp);
+            if ($content !== false) {
+                $ok = @file_put_contents($dest, $content) !== false;
+                if ($ok) @unlink($tmp);
+            }
+        }
+        if (!$ok) {
+            error_log('[Admin] Upload failed for ' . $filename);
+            $this->setFlash('danger', 'Upload failed: could not save the image. Try a smaller file.');
+            $this->redirect($redirect);
+        }
+
+        @chmod($dest, 0644);
+
+        // Auto-optimize: convert to WebP to save bandwidth and storage.
+        $dest = ImageOptimizer::optimize($dest);
+        $filename = basename($dest);
+
+        // Build the public URL based on where the file actually ended up.
+        $publicRoot = APP_ROOT . '/public';
+        if (str_starts_with($dir, $publicRoot)) {
+            // $dir = /var/www/public/uploads → /public/uploads
+            return BASE_URL . '/public' . substr($dir, strlen($publicRoot)) . '/' . $filename;
+        }
+        return $dir . '/' . $filename;
+    }
+
+    /**
+     * Find a writable uploads directory, creating if needed.
+     *
+     * @return string absolute path, or '' on failure
+     */
+    private function findUploadDir(): string
+    {
+        $candidates = [
+            APP_ROOT . '/public/uploads',
+            APP_ROOT . '/storage',
+        ];
+
+        foreach ($candidates as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+                if (!is_dir($dir)) {
+                    @mkdir($dir, 0777);
+                }
+            }
+            if (!is_dir($dir)) {
+                continue;
+            }
+            if (!is_writable($dir)) {
+                @chmod($dir, 0777);
+            }
+            if (!is_writable($dir)) {
+                continue;
+            }
+            // Verify we can actually write
+            $test = $dir . '/.write-test-' . bin2hex(random_bytes(4));
+            if (@file_put_contents($test, 'ok') !== false) {
+                @unlink($test);
+                return $dir;
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -1678,7 +2274,14 @@ class AdminController extends Controller
             return;
         }
 
-        $file = APP_ROOT . '/public/uploads/' . basename($url);
+        // Preserve any subfolder in the URL (e.g. uploads/qr-payments/...),
+        // but never allow path traversal outside public/uploads/.
+        $relative = str_replace('\\', '/', substr($url, strlen($prefix)));
+        if (str_contains($relative, '..')) {
+            return;
+        }
+
+        $file = APP_ROOT . '/public/uploads/' . $relative;
         if (is_file($file)) {
             @unlink($file);
         }
@@ -1720,9 +2323,24 @@ class AdminController extends Controller
         $status = Security::sanitizeText($_POST['status'] ?? '');
         $redirect = $this->filterRedirect();
 
-        if ($id !== '' && in_array($status, self::ALLOWED_STATUSES, true)
-            && (new AppointmentModel())->updateStatus($id, $status)) {
-            $this->setFlash('success', 'Appointment status updated.');
+        if ($id !== '' && in_array($status, self::ALLOWED_STATUSES, true)) {
+            $model = new AppointmentModel();
+            if ($model->updateStatus($id, $status)) {
+                $this->setFlash('success', 'Appointment status updated.');
+
+                // Send email to customer when confirmed, rejected, or completed.
+                if (in_array($status, ['confirmed', 'rejected', 'completed'], true)) {
+                    $allAppts = $model->all();
+                    foreach ($allAppts as $a) {
+                        if (($a['id'] ?? '') === $id) {
+                            Mailer::sendAppointmentStatusEmail($a, $status);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                $this->setFlash('danger', 'Could not update that appointment.');
+            }
         } else {
             $this->setFlash('danger', 'Could not update that appointment.');
         }

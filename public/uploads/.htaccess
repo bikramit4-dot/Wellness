@@ -16,3 +16,13 @@ AddType video/mp4 .mp4 .m4v
 AddType video/webm .webm
 AddType video/ogg .ogv
 AddType audio/mpeg .mp3
+
+# WebP and AVIF image support
+AddType image/webp .webp
+AddType image/avif .avif
+
+# Cache optimized images aggressively (they rarely change)
+<IfModule mod_expires.c>
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+</IfModule>

@@ -12,23 +12,24 @@ class AppointmentController extends Controller
             $this->redirect('/contact');
         }
 
-        // Rate limiting: at most 5 real submissions per IP every 10 minutes,
-        // so a bot can never flood the bookings inbox. Limited callers get the
-        // same "thank you" so they can't tell they were throttled.
         $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        error_log('[Appointment] Store called. IP=' . $ip . ' SESSION_FORM_TS=' . ($_SESSION['contact_form_ts'] ?? 'NOT SET'));
+
+        // Rate limiting
         if (Security::throttle('appointment:' . $ip, self::RATE_MAX, self::RATE_WINDOW) > 0) {
-            error_log('[Appointment] Rate limit hit for IP ' . $ip);
+            error_log('[Appointment] RATE LIMIT hit for IP ' . $ip);
             $this->setFlash('success', 'Appointment request received. We will contact you shortly.');
             $this->redirect('/contact');
         }
 
-        // Spam protection: honeypot field + minimum form-fill time. Bots are
-        // silently "accepted" so they never learn they were caught.
+        // Spam protection
         if ($this->looksLikeSpam()) {
-            error_log('[Appointment] Spam submission blocked.');
+            error_log('[Appointment] SPAM BLOCKED. IP=' . $ip);
             $this->setFlash('success', 'Appointment request received. We will contact you shortly.');
             $this->redirect('/contact');
         }
+
+        error_log('[Appointment] Passed spam check. Processing save...');
 
         // Length caps keep the stored data tidy and stop oversized payloads.
         $name = mb_substr(Security::sanitizeText($_POST['full_name'] ?? ''), 0, 100);
@@ -39,15 +40,57 @@ class AppointmentController extends Controller
         $time = mb_substr(Security::sanitizeText($_POST['preferred_time'] ?? ''), 0, 10);
         $message = mb_substr(Security::sanitizeText($_POST['message'] ?? ''), 0, 2000);
 
-        if ($name === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->setFlash('danger', 'Please provide a valid name and email.');
+        // ── Validation ──────────────────────────────────────────────
+        $errors = [];
+
+        if ($name === '' || mb_strlen($name) < 2) {
+            $errors[] = 'Full name is required (at least 2 characters).';
+        }
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'A valid email address is required.';
+        }
+        if ($phone === '' || !preg_match('/^[+\d\s\-]{7,20}$/', $phone)) {
+            $errors[] = 'A valid phone number is required (7-20 digits, may include +, spaces, dashes).';
+        }
+        $validTreatments = ['Naturopathy', 'Yoga Therapy', 'Acupuncture', 'Physiotherapy', 'Diet Therapy', 'Special Therapy'];
+        if ($treatment === '' || !in_array($treatment, $validTreatments, true)) {
+            $errors[] = 'Please select a valid treatment.';
+        }
+        if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $errors[] = 'Please select a preferred date.';
+        } else {
+            $dateObj = date_create($date);
+            if ($dateObj === false || $dateObj < new DateTime('today')) {
+                $errors[] = 'Preferred date cannot be in the past.';
+            }
+        }
+        if ($time === '' || !preg_match('/^\d{2}:\d{2}$/', $time)) {
+            $errors[] = 'Please select a preferred time.';
+        }
+        if ($message === '' || mb_strlen(trim($message)) < 10) {
+            $errors[] = 'Please enter a message (at least 10 characters).';
+        }
+
+        if ($errors !== []) {
+            $this->setFlash('danger', implode(' ', $errors));
             $this->redirect('/contact');
         }
 
+        // ── Save ────────────────────────────────────────────────────
         $model = new AppointmentModel();
         $model->save($name, $email, $phone, $treatment, $date, $time, $message);
 
-        // Notify the admin by email. Mailer never throws; failures are logged internally.
+        error_log('[Appointment] SAVED: ' . $name . ' (' . $email . ') for ' . $treatment . ' on ' . $date . ' ' . $time);
+
+        // In-app notification for the admin panel
+        NotificationModel::add(
+            'appointment',
+            'New Appointment',
+            $name . ' booked ' . $treatment . ' for ' . $date . ' at ' . $time,
+            '/admin/appointments'
+        );
+
+        // Email notification to admin (non-blocking — failures are logged internally)
         Mailer::sendAppointmentNotification([
             'name' => $name,
             'email' => $email,
@@ -69,27 +112,24 @@ class AppointmentController extends Controller
     {
         // 1. Honeypot: real users never see or fill this field.
         if (trim((string) ($_POST['website'] ?? '')) !== '') {
+            error_log('[Appointment] Spam: honeypot filled');
             return true;
         }
 
-        // 2. The server recorded when /contact was actually rendered — use that
-        //    as the authoritative "page loaded" time (the hidden form field is
-        //    only a hint; a bot can echo it back verbatim).
-        $loadedAt = (int) ($_SESSION['contact_form_ts'] ?? 0);
-        if ($loadedAt <= 0) {
-            $loadedAt = (int) ($_POST['form_loaded_at'] ?? 0);
-        }
-        if ($loadedAt <= 0) {
-            return true;
-        }
+        // 2. Minimum form-fill time — use both session and POST timestamps.
+        $sessionTs = (int) ($_SESSION['contact_form_ts'] ?? 0);
+        $postTs    = (int) ($_POST['form_loaded_at'] ?? 0);
+        $loadedAt  = $sessionTs > 0 ? $sessionTs : $postTs;
 
-        // 2b. A timestamp in the future means the request was forged.
-        if ($loadedAt > time() + 60) {
-            return true;
+        if ($loadedAt > 0 && $loadedAt <= time() + 60) {
+            $elapsed = time() - $loadedAt;
+            if ($elapsed < 1) {
+                error_log('[Appointment] Spam: too fast (' . $elapsed . 's)');
+                return true;
+            }
         }
+        // If no timestamp available, allow through — honeypot is sufficient.
 
-        // 3. Humans take at least a few seconds to fill the form;
-        //    automated submissions usually arrive almost instantly.
-        return time() - $loadedAt < 3;
+        return false;
     }
 }

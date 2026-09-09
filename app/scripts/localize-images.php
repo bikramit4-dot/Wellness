@@ -12,6 +12,9 @@
  *   /Applications/XAMPP/xamppfiles/bin/php app/scripts/localize-images.php
  */
 
+require_once __DIR__ . '/../core/Dotenv.php';
+Dotenv::load(dirname(__DIR__, 2) . '/.env');
+
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/Database.php';
 

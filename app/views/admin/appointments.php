@@ -32,6 +32,13 @@
             <span>Confirmed</span>
         </div>
     </div>
+    <div class="admin-stat stat-rejected">
+        <span class="stat-icon"><svg class="icon"><use href="#icon-close"/></svg></span>
+        <div class="stat-body">
+            <strong><?= (int) $counts['rejected'] ?></strong>
+            <span>Rejected</span>
+        </div>
+    </div>
     <div class="admin-stat stat-completed">
         <span class="stat-icon"><svg class="icon"><use href="#icon-clock"/></svg></span>
         <div class="stat-body">
@@ -46,6 +53,7 @@
     <a class="admin-tab <?= $filter === '' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/appointments">All</a>
     <a class="admin-tab <?= $filter === 'new' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/appointments?status=new">New</a>
     <a class="admin-tab <?= $filter === 'confirmed' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/appointments?status=confirmed">Confirmed</a>
+    <a class="admin-tab <?= $filter === 'rejected' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/appointments?status=rejected">Rejected</a>
     <a class="admin-tab <?= $filter === 'completed' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/appointments?status=completed">Completed</a>
 </div>
 
@@ -104,7 +112,7 @@
                                 <input type="hidden" name="id" value="<?= $aId ?>">
                                 <?php if ($filter !== ''): ?><input type="hidden" name="filter" value="<?= Security::e($filter) ?>"><?php endif; ?>
                                 <select name="status" class="status-select" aria-label="Change status">
-                                    <?php foreach (['new', 'confirmed', 'completed'] as $s): ?>
+                                    <?php foreach (['new', 'confirmed', 'rejected', 'completed'] as $s): ?>
                                         <option value="<?= $s ?>" <?= ($a['status'] ?? 'new') === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
                                     <?php endforeach; ?>
                                 </select>

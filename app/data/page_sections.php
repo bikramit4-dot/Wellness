@@ -22,8 +22,15 @@
 /* ---------- Site-wide settings ---------- */
 $site = [
     'brand' => [
-        'heading' => 'Harmony Wellness',
+        'heading' => 'Chitrawan Nature Cure Hospital',
         'image' => '', // empty → leaf icon + name; upload a logo to replace it
+    ],
+    // Top bar information (editable from Admin → Pages → Site Settings → Top Bar).
+    //   link=phone · sub_content=email · kicker=opening hours
+    'topbar' => [
+        'link' => '+977-9800000000',
+        'sub_content' => 'info@chitrawannaturecure.com',
+        'kicker' => 'Sun \u2013 Fri: 8:00 AM \u2013 7:00 PM',
     ],
     // Footer information (editable from Admin → Pages → Site Settings →
     // Footer Information). Reuses the shared section columns:
@@ -32,8 +39,8 @@ $site = [
     //   extras=social links (one "Label | URL" per line)
     'footer' => [
         'content' => 'Where ancient healing traditions meet modern therapeutic practices. We help you achieve physical, mental, and emotional balance through personalized natural care.',
-        'heading' => 'Harmony Wellness Center, Kathmandu, Nepal',
-        'sub_content' => 'info@harmonywellness.com',
+        'heading' => 'Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal',
+        'sub_content' => 'info@chitrawannaturecure.com',
         'link' => '+977-9800000000',
         'kicker' => "Sun – Fri: 8 AM – 7 PM\nSat: 9 AM – 4 PM",
         'link_label' => 'Healing naturally, living fully.',
@@ -50,7 +57,7 @@ $home = [
     'hero' => [
         'kicker' => 'Natural Healing · Holistic Care',
         'heading' => 'Rejuvenate Your Body, Mind & Soul',
-        'content' => 'Welcome to Harmony Wellness Center, where ancient healing traditions meet modern therapeutic practices. Our team helps you achieve physical, mental, and emotional balance with personalized natural care.',
+        'content' => 'Welcome to Chitrawan Nature Cure Hospital, where ancient healing traditions meet modern therapeutic practices. Our team helps you achieve physical, mental, and emotional balance with personalized natural care.',
         'sub_content' => '4.9/5 rated by 1,200+ happy patients',
         'media' => 'Olive and White Modern Spa and Wellness Banner Landscape.mp4',
         'extras' => [
@@ -67,9 +74,9 @@ $home = [
         ],
     ],
     'about_intro' => [
-        'kicker' => 'About Harmony',
+        'kicker' => 'About Chitrawan',
         'heading' => 'Healing Naturally, Living Fully',
-        'content' => 'Harmony Wellness Center is a holistic healthcare destination committed to promoting natural healing and preventive healthcare. Our peaceful environment, expert practitioners, and evidence-based therapies help patients restore balance and improve their quality of life.',
+        'content' => 'Chitrawan Nature Cure Hospital is a holistic healthcare destination committed to promoting natural healing and preventive healthcare. Our peaceful environment, expert practitioners, and evidence-based therapies help patients restore balance and improve their quality of life.',
         'sub_content' => 'Since 2010|Healing with care & compassion',
         'image' => BASE_URL . '/public/uploads/photos/photo-1545205597-3d9d02c29597.jpg',
         'link' => '/about',
@@ -99,7 +106,7 @@ $home = [
     'story' => [
         'kicker' => 'Our Story',
         'heading' => 'A Journey of Healing, Growing with Every Patient',
-        'content' => "Harmony Wellness Center was born from a simple belief: true health comes from within. What began as a small clinic with two therapists has grown into a trusted wellness destination, guided every step of the way by the thousands of patients who trusted us with their care.\n\nEvery therapy we offer, every space we design, and every team member we welcome reflects the same promise — to treat you as family and walk beside you on your path to balance.",
+        'content' => "Chitrawan Nature Cure Hospital was born from a simple belief: true health comes from within. What began as a small clinic with two therapists has grown into a trusted wellness destination, guided every step of the way by the thousands of patients who trusted us with their care.\n\nEvery therapy we offer, every space we design, and every team member we welcome reflects the same promise — to treat you as family and walk beside you on your path to balance.",
         'sub_content' => '12+ Years|Of natural healing',
         'image' => BASE_URL . '/public/uploads/photos/photo-1512621776951-a57141f2eefd.jpg',
         'link' => '/about',
@@ -125,13 +132,13 @@ $home = [
 $about = [
     'hero' => [
         'heading' => 'About Us',
-        'content' => 'Meet the people and philosophy behind Harmony Wellness Center — where natural healing is a way of life.',
+        'content' => 'Meet the people and philosophy behind Chitrawan Nature Cure Hospital — where natural healing is a way of life.',
     ],
     'founder' => [
         'kicker' => '01 · Founder',
         'heading' => 'Meet Our Founder',
         'sub_content' => 'Dr. Rajesh Sharma|Founder & Holistic Medicine Specialist',
-        'content' => "Dr. Rajesh Sharma established Harmony Wellness Center with the vision of creating a healthcare facility that promotes natural healing and healthy living. With more than twenty years of experience in holistic medicine, he believes prevention and lifestyle changes are the keys to long-term wellness.\n\nHis mission is to help people heal naturally and live healthier lives through personalized care and compassionate treatment.",
+        'content' => "Dr. Rajesh Sharma established Chitrawan Nature Cure Hospital with the vision of creating a healthcare facility that promotes natural healing and healthy living. With more than twenty years of experience in holistic medicine, he believes prevention and lifestyle changes are the keys to long-term wellness.\n\nHis mission is to help people heal naturally and live healthier lives through personalized care and compassionate treatment.",
         'image' => BASE_URL . '/public/uploads/photos/photo-1576091160399-112ba8d25d1d.jpg',
     ],
     'approach' => [
@@ -184,7 +191,7 @@ $about = [
     'group' => [
         'kicker' => '06 · Our Group',
         'heading' => 'Our Group',
-        'content' => 'The people who make Harmony Wellness Center a place of healing.',
+        'content' => 'The people who make Chitrawan Nature Cure Hospital a place of healing.',
         'image' => BASE_URL . '/public/uploads/photos/photo-1544367567-0f2fcb009e0b.jpg',
     ],
     'cta' => [
@@ -208,9 +215,9 @@ $contact = [
         'kicker' => 'Reach Us',
         'heading' => 'Contact Information',
         'extras' => [
-            'Our Address|Harmony Wellness Center, Kathmandu, Nepal',
+            'Our Address|Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal',
             'Phone|+977-9800000000',
-            'Email|info@harmonywellness.com',
+            'Email|info@chitrawannaturecure.com',
             'Opening Hours|Sunday – Friday: 8:00 AM – 7:00 PM
 Saturday: 9:00 AM – 4:00 PM',
         ],
@@ -222,8 +229,8 @@ Saturday: 9:00 AM – 4:00 PM',
     'map' => [
         'kicker' => 'Find Us',
         'heading' => 'Our Location',
-        'content' => 'Harmony Wellness Center · Kathmandu, Nepal',
-        'link' => 'Harmony Wellness Center, Kathmandu, Nepal',
+        'content' => 'Chitrawan Nature Cure Hospital · Bharatpur-15, Nepal',
+        'link' => 'Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal',
     ],
 ];
 
@@ -303,6 +310,22 @@ $tariff = [
         'heading' => 'Individual Service Prices',
         'content' => 'All sessions include a personal assessment with your therapist.',
         'sub_content' => 'Prices are indicative. Please contact us for the latest offers and package discounts.',
+    ],
+    // Advance payment by QR code (editable from Admin → Pages → Tariff →
+    // QR Code & Advance Payment). image = the QR code patients scan; the form
+    // next to it is fixed, but the heading/text/steps are editable.
+    'qr' => [
+        'kicker' => 'Advance Payment',
+        'heading' => 'Pay Your Advance by QR Code',
+        'content' => 'Secure your package or appointment with a small advance payment. Scan the QR code with any UPI payment app, then submit your details with the payment screenshot below.',
+        'sub_content' => 'UPI ID: chitrawan naturecure@upi',
+        'image' => '', // upload the QR code image from the admin panel
+        'link_label' => 'Keep your payment reference number — it helps us verify your payment faster.',
+        'extras' => [
+            'Scan the QR code with your UPI / payment app',
+            'Enter the advance amount shown in the package above',
+            'Fill in the form with your details and attach the payment screenshot',
+        ],
     ],
 ];
 $gallery = [

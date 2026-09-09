@@ -10,6 +10,9 @@
  * storage/appointments.txt into the database.
  */
 
+require_once __DIR__ . '/../core/Dotenv.php';
+Dotenv::load(dirname(__DIR__, 2) . '/.env');
+
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/Database.php';
 
@@ -28,14 +31,32 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS appointments (
     date        VARCHAR(20)  NOT NULL DEFAULT '',
     time        VARCHAR(20)  NOT NULL DEFAULT '',
     message     TEXT         NULL,
-    status      ENUM('new', 'confirmed', 'completed') NOT NULL DEFAULT 'new',
+    status      ENUM('new', 'confirmed', 'rejected', 'completed') NOT NULL DEFAULT 'new',
     created_at  DATETIME     NOT NULL,
     PRIMARY KEY (id),
     KEY idx_created_at (created_at),
     KEY idx_status (status)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS qr_payments (
+    id             CHAR(16)     NOT NULL,
+    name           VARCHAR(120) NOT NULL,
+    email          VARCHAR(190) NOT NULL,
+    phone          VARCHAR(40)  NOT NULL DEFAULT '',
+    address        VARCHAR(300) NOT NULL DEFAULT '',
+    amount         VARCHAR(40)  NOT NULL DEFAULT '',
+    transaction_id VARCHAR(120) NOT NULL DEFAULT '',
+    message        TEXT         NULL,
+    screenshot     VARCHAR(300) NOT NULL DEFAULT '',
+    status         ENUM('new', 'verified', 'rejected') NOT NULL DEFAULT 'new',
+    created_at     DATETIME     NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_created_at (created_at),
+    KEY idx_status (status)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci");
+
 $pdo->exec("CREATE TABLE IF NOT EXISTS therapies (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
     slug        VARCHAR(80)  NOT NULL,
     category    VARCHAR(40)  NOT NULL,
     title       VARCHAR(120) NOT NULL,
@@ -48,6 +69,21 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS therapies (
     PRIMARY KEY (slug),
     KEY idx_category (category)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci");
+
+// Older databases may predate the numeric id column used by the admin
+// content manager — add it if missing (idempotent migration).
+$therapiesCols = $pdo->query('SHOW COLUMNS FROM therapies')->fetchAll();
+$hasTherapyId = false;
+foreach ($therapiesCols as $c) {
+    if (($c['Field'] ?? '') === 'id') {
+        $hasTherapyId = true;
+        break;
+    }
+}
+if (!$hasTherapyId) {
+    $pdo->exec('ALTER TABLE therapies ADD COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE FIRST');
+    echo "Therapies id column added.\n";
+}
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
     slug        VARCHAR(80)  NOT NULL,

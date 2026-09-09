@@ -46,21 +46,22 @@
                 <input type="hidden" name="form_loaded_at" value="<?= (int) ($_SESSION['contact_form_ts'] ?? time()) ?>">
                 <div class="form-row">
                     <div>
-                        <label for="full_name">Full Name</label>
-                        <input type="text" id="full_name" name="full_name" required placeholder="Your full name">
+                        <label for="full_name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="full_name" name="full_name" required minlength="2" maxlength="100" placeholder="Your full name">
                     </div>
                     <div>
-                        <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" placeholder="+977-...">
+                        <label for="phone">Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" required pattern="[+\d\s\-]{7,20}" placeholder="+977-9800000000">
                     </div>
                 </div>
                 <div>
-                    <label for="email">Email Address</label>
+                    <label for="email">Email Address <span class="required">*</span></label>
                     <input type="email" id="email" name="email" required placeholder="you@example.com">
                 </div>
                 <div>
-                    <label for="treatment">Select Treatment</label>
-                    <select id="treatment" name="treatment">
+                    <label for="treatment">Select Treatment <span class="required">*</span></label>
+                    <select id="treatment" name="treatment" required>
+                        <option value="">-- Select a treatment --</option>
                         <option value="Naturopathy">Naturopathy</option>
                         <option value="Yoga Therapy">Yoga Therapy</option>
                         <option value="Acupuncture">Acupuncture</option>
@@ -71,17 +72,17 @@
                 </div>
                 <div class="form-row">
                     <div>
-                        <label for="preferred_date">Preferred Date</label>
-                        <input type="date" id="preferred_date" name="preferred_date">
+                        <label for="preferred_date">Preferred Date <span class="required">*</span></label>
+                        <input type="date" id="preferred_date" name="preferred_date" required>
                     </div>
                     <div>
-                        <label for="preferred_time">Preferred Time</label>
-                        <input type="time" id="preferred_time" name="preferred_time">
+                        <label for="preferred_time">Preferred Time <span class="required">*</span></label>
+                        <input type="time" id="preferred_time" name="preferred_time" required>
                     </div>
                 </div>
                 <div>
-                    <label for="message">Message</label>
-                    <textarea id="message" name="message" rows="4" placeholder="Tell us about your health goals or questions..."></textarea>
+                    <label for="message">Message <span class="required">*</span></label>
+                    <textarea id="message" name="message" rows="4" required minlength="10" maxlength="2000" placeholder="Tell us about your health goals or questions..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-dark">Book Appointment <svg class="icon"><use href="#icon-arrow"/></svg></button>
             </form>
@@ -95,12 +96,12 @@
         <div class="section-head center reveal">
             <span class="kicker"><?= Security::e(sec($sections, 'map', 'kicker', 'Find Us')) ?></span>
             <h2><?= Security::e(sec($sections, 'map', 'heading', 'Our Location')) ?></h2>
-            <p class="lede"><?= Security::e(sec($sections, 'map', 'content', 'Harmony Wellness Center · Kathmandu, Nepal')) ?></p>
+            <p class="lede"><?= Security::e(sec($sections, 'map', 'content', 'Chitrawan Nature Cure Hospital · Bharatpur-15, Nepal')) ?></p>
         </div>
         <div class="map-card reveal" style="--d:.1s">
             <iframe
-                title="Map showing the location of Harmony Wellness Center in Kathmandu, Nepal"
-                src="https://maps.google.com/maps?q=<?= Security::e(urlencode(sec($sections, 'map', 'link', 'Harmony Wellness Center, Kathmandu, Nepal'))) ?>&z=14&output=embed"
+                title="Map showing the location of Chitrawan Nature Cure Hospital in Bharatpur-15, Nepal"
+                src="https://maps.google.com/maps?q=<?= Security::e(urlencode(sec($sections, 'map', 'link', 'Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal'))) ?>&z=14&output=embed"
                 width="600" height="420" loading="lazy" allowfullscreen
                 referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>

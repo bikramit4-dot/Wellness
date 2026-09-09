@@ -1,4 +1,4 @@
-<?php
+ <?php
 class Security
 {
     public static function e(mixed $value): string

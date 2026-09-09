@@ -16,11 +16,11 @@ $brand = $GLOBALS['__siteSections']['brand'] ?? [];
 $logoUrl = trim((string) ($brand['image'] ?? ''));
 $brandName = trim((string) ($brand['heading'] ?? ''));
 if ($brandName === '') {
-    $brandName = 'Harmony Wellness';
+    $brandName = 'Chitrawan Nature Cure Hospital';
 }
 
-// Split the name into "Harmony" + "Wellness" so the last word keeps the
-// italic accent style (e.g. "Harmony <em>Wellness</em>").
+// Split the name so the last word keeps the
+// italic accent style (e.g. "Chitrawan Nature Cure <em>Hospital</em>").
 $nameParts = preg_split('/\s+/', $brandName, -1, PREG_SPLIT_NO_EMPTY);
 $accent = count($nameParts) > 1 ? array_pop($nameParts) : '';
 $main = implode(' ', $nameParts);

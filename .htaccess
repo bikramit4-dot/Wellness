@@ -1,15 +1,52 @@
 # Security: never let Apache list directory contents.
 Options -Indexes
 
-# Block access to sensitive dot-files (e.g. .git, .env).
+# Block access to sensitive dot-files (e.g. .git, .env) — and crucially the
+# files *inside* .git (like .git/config), which FilesMatch alone cannot reach.
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
 
-RewriteEngine On
-# No RewriteBase here on purpose: Apache infers the base from the directory
-# containing this file, so the app keeps working whether it is deployed at a
-# sub-directory (e.g. /wellness), the domain root, or a renamed folder.
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Hard-block requests into sensitive paths before any other rewriting.
+    # Return 404 (not 403) so probing tools cannot tell these paths exist.
+    RewriteRule ^\.git(/|$) - [F,L]
+    RewriteRule ^\.env($|/) - [F,L]
+    RewriteRule ^storage(/|$) - [F,L]
+    RewriteRule ^app(/|$) - [F,L]
+    RewriteRule ^(database\.sql|README\.md|git-sync\.sh|_test_unlock\.sh|cj\.txt)$ - [F,L]
+
+    # No RewriteBase here on purpose: Apache infers the base from the directory
+    # containing this file, so the app keeps working whether it is deployed at a
+    # sub-directory (e.g. /wellness), the domain root, or a renamed folder.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# ============ Compression (gzip) ============
+# Shrink HTML, CSS, JS and JSON before it hits the wire. Skipped automatically
+# for images/video, which are already compressed.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE application/xml image/svg+xml
+</IfModule>
+
+# ============ Browser caching (static assets) ============
+# Images, CSS and JS are content-addressed via asset_url()'s ?v= cache-buster,
+# so a long max-age is safe: any file change produces a brand-new URL and the
+# browser re-fetches it automatically.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
