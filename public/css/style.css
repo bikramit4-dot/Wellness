@@ -751,21 +751,48 @@ body.lightbox-locked { overflow: hidden; }
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-end;
-    gap: 4px;
-    margin: .4rem 0 1rem;
+    gap: 3px;
+    margin: .5rem 0 1rem;
 }
+
 .rating-input .rating-star {
     cursor: pointer;
     color: var(--line, #dce5dc);
-    transition: color .15s;
+    transition: color .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
-.rating-input .rating-star .icon { width: 28px; height: 28px; }
-.rating-input input { position: absolute; opacity: 0; pointer-events: none; }
 
-/* Highlight stars on hover and when selected */
-.rating-input .rating-star:hover,
-.rating-input .rating-star:hover ~ .rating-star,
-.rating-input input:checked ~ .rating-star {
+.rating-input .rating-star .icon {
+    width: 32px;
+    height: 32px;
+    transition: color .15s ease;
+}
+
+/* Hide radio buttons but keep them accessible */
+.rating-input input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Star hover effects */
+.rating-input .rating-star:hover .icon,
+.rating-input .rating-star:hover~.rating-star .icon {
+    color: var(--apricot, #f4a261);
+}
+
+/* Selected state - when radio is checked, highlight all stars up to it */
+.rating-input input:checked~.rating-star .icon {
+    color: var(--apricot, #f4a261);
+}
+
+/* Keep the checked star and all before it filled */
+.rating-input .rating-star:has(input:checked) .icon,
+.rating-input .rating-star:has(input:checked)~.rating-star .icon {
     color: var(--apricot, #f4a261);
 }
 

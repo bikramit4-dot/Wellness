@@ -767,4 +767,73 @@ document.addEventListener('click', function (e) {
             }
         });
     }
+
+    /* ---------- Star rating input ---------- */
+    var ratingInputs = document.querySelectorAll('.rating-input');
+    ratingInputs.forEach(function (ratingInput) {
+        var stars = ratingInput.querySelectorAll('.rating-star');
+        var inputs = ratingInput.querySelectorAll('input[type="radio"]');
+
+        // The stars are displayed in reverse order due to row-reverse,
+        // so index 0 in DOM = star 5, index 4 = star 1
+        function getStarValue(index) {
+            // With 5 stars and row-reverse: DOM index 0 = value 5, index 4 = value 1
+            return 5 - index;
+        }
+
+        // Set visual state based on checked radio
+        function updateVisual() {
+            var checkedInput = null;
+            inputs.forEach(function (input) {
+                if (input.checked) checkedInput = input;
+            });
+
+            stars.forEach(function (star, i) {
+                var icon = star.querySelector('.icon');
+                var starValue = getStarValue(i);
+
+                if (checkedInput && parseInt(checkedInput.value) >= starValue) {
+                    icon.style.color = 'var(--apricot, #f4a261)';
+                } else {
+                    icon.style.color = '';
+                }
+            });
+        }
+
+        // Hover effects - highlight stars based on hovered star's value
+        stars.forEach(function (star, index) {
+            var starValue = getStarValue(index);
+
+            star.addEventListener('mouseenter', function () {
+                stars.forEach(function (s, i) {
+                    var sValue = getStarValue(i);
+                    if (sValue >= starValue) {
+                        s.querySelector('.icon').style.color = 'var(--apricot, #f4a261)';
+                    }
+                });
+            });
+
+            star.addEventListener('mouseleave', updateVisual);
+
+            // Click to select this star's value
+            star.addEventListener('click', function () {
+                var valueToSelect = getStarValue(index);
+                inputs.forEach(function (input) {
+                    if (parseInt(input.value) === valueToSelect) {
+                        input.checked = true;
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+                updateVisual();
+            });
+        });
+
+        // Listen for changes
+        inputs.forEach(function (input) {
+            input.addEventListener('change', updateVisual);
+        });
+
+        // Initialize
+        updateVisual();
+    });
 })();

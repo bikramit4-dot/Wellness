@@ -193,14 +193,28 @@
                     </div>
                 </div>
                 <div>
-                    <label>Your Rating <span class="required">*</span></label>
-                    <div class="rating-input" role="radiogroup" aria-label="Rating">
-                        <?php for ($r = 5; $r >= 1; $r--): ?>
-                            <label class="rating-star" title="<?= $r ?> star<?= $r > 1 ? 's' : '' ?>">
-                                <input type="radio" name="review_rating" value="<?= $r ?>" <?= $r === 5 ? 'checked' : '' ?> required>
-                                <svg class="icon"><use href="#icon-star"/></svg>
-                            </label>
-                        <?php endfor; ?>
+                    <label for="review_rating_group" class="required-star-label">Your Rating <span class="required">*</span></label>
+                    <div class="rating-input" role="radiogroup" id="review_rating_group" aria-label="Rating">
+                        <input type="radio" name="review_rating" id="star5" value="5" required>
+                        <label for="star5" class="rating-star" title="5 stars">
+                            <svg class="icon"><use href="#icon-star"/></svg>
+                        </label>
+                        <input type="radio" name="review_rating" id="star4" value="4">
+                        <label for="star4" class="rating-star" title="4 stars">
+                            <svg class="icon"><use href="#icon-star"/></svg>
+                        </label>
+                        <input type="radio" name="review_rating" id="star3" value="3">
+                        <label for="star3" class="rating-star" title="3 stars">
+                            <svg class="icon"><use href="#icon-star"/></svg>
+                        </label>
+                        <input type="radio" name="review_rating" id="star2" value="2">
+                        <label for="star2" class="rating-star" title="2 stars">
+                            <svg class="icon"><use href="#icon-star"/></svg>
+                        </label>
+                        <input type="radio" name="review_rating" id="star1" value="1">
+                        <label for="star1" class="rating-star" title="1 star">
+                            <svg class="icon"><use href="#icon-star"/></svg>
+                        </label>
                     </div>
                 </div>
                 <div>
