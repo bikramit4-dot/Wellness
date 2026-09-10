@@ -220,8 +220,8 @@ class AdminController extends Controller
                 'topbar' => [
                     'label' => 'Top Bar',
                     'fields' => [
-                        ['name' => 'link', 'label' => 'Phone number', 'type' => 'text', 'hint' => 'e.g. +977-9800000000'],
-                        ['name' => 'sub_content', 'label' => 'Email address', 'type' => 'text', 'hint' => 'e.g. info@chitrawannaturecure.com'],
+                        ['name' => 'link', 'label' => 'Phone number', 'type' => 'text', 'hint' => 'e.g. +977 56-535213'],
+                        ['name' => 'sub_content', 'label' => 'Email address', 'type' => 'text', 'hint' => 'e.g. nchchitwan@gmail.com'],
                         ['name' => 'kicker', 'label' => 'Opening hours', 'type' => 'text', 'hint' => 'e.g. Sun – Fri: 8:00 AM – 7:00 PM'],
                     ],
                 ],
@@ -231,7 +231,7 @@ class AdminController extends Controller
                         ['name' => 'content', 'label' => 'Footer tagline', 'type' => 'textarea', 'hint' => 'Short description shown under the brand in the footer.'],
                         ['name' => 'heading', 'label' => 'Address', 'type' => 'text'],
                         ['name' => 'sub_content', 'label' => 'Email', 'type' => 'text'],
-                        ['name' => 'link', 'label' => 'Phone', 'type' => 'text', 'hint' => 'e.g. +977-9800000000'],
+                        ['name' => 'link', 'label' => 'Phone', 'type' => 'text', 'hint' => 'e.g. +977 56-535213'],
                         ['name' => 'kicker', 'label' => 'Opening hours', 'type' => 'textarea', 'hint' => 'One line per period — each line appears on its own row.'],
                         ['name' => 'link_label', 'label' => 'Copyright tagline', 'type' => 'text', 'hint' => 'Small text beside the © copyright line.'],
                         ['name' => 'extras', 'label' => 'Social links', 'type' => 'list', 'hint' => 'One per line, format: Label | URL — e.g. Facebook | https://facebook.com/yourpage'],

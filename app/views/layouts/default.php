@@ -21,8 +21,8 @@ if (!isset($GLOBALS['__siteSectionsLoaded'])) {
     $GLOBALS['__siteSections'] = PageSectionModel::forPage('site');
 }
 $_topbar = $GLOBALS['__siteSections']['topbar'] ?? [];
-$_topbarPhone = trim((string) ($_topbar['link'] ?? '+977-9800000000'));
-$_topbarEmail = trim((string) ($_topbar['sub_content'] ?? 'info@chitrawannaturecure.com'));
+$_topbarPhone = trim((string) ($_topbar['link'] ?? '+977 56-535213'));
+$_topbarEmail = trim((string) ($_topbar['sub_content'] ?? 'nchchitwan@gmail.com'));
 $_topbarHours = trim((string) ($_topbar['kicker'] ?? 'Sun – Fri: 8:00 AM – 7:00 PM'));
 ?>
 <!-- ============ Utility Top Bar ============ -->

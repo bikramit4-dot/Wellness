@@ -31,6 +31,6 @@ $brandClass = $brandClass ?? '';
         <img class="brand-logo" src="<?= Security::e($logoUrl) ?>" alt="<?= Security::e($brandName) ?>" loading="lazy">
     <?php else: ?>
         <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#icon-leaf"/></svg></span>
-        <span><?= Security::e($main) ?><?php if ($accent !== ''): ?> <em><?= Security::e($accent) ?></em><?php endif; ?></span>
     <?php endif; ?>
+    <span class="brand-name"><?= Security::e($main) ?><?php if ($accent !== ''): ?> <em><?= Security::e($accent) ?></em><?php endif; ?></span>
 </a>

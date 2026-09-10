@@ -28,8 +28,8 @@ $site = [
     // Top bar information (editable from Admin → Pages → Site Settings → Top Bar).
     //   link=phone · sub_content=email · kicker=opening hours
     'topbar' => [
-        'link' => '+977-9800000000',
-        'sub_content' => 'info@chitrawannaturecure.com',
+        'link' => '+977 56-535213',
+        'sub_content' => 'nchchitwan@gmail.com',
         'kicker' => 'Sun \u2013 Fri: 8:00 AM \u2013 7:00 PM',
     ],
     // Footer information (editable from Admin → Pages → Site Settings →
@@ -40,8 +40,8 @@ $site = [
     'footer' => [
         'content' => 'Where ancient healing traditions meet modern therapeutic practices. We help you achieve physical, mental, and emotional balance through personalized natural care.',
         'heading' => 'Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal',
-        'sub_content' => 'info@chitrawannaturecure.com',
-        'link' => '+977-9800000000',
+        'sub_content' => 'nchchitwan@gmail.com',
+        'link' => '+977 56-535213',
         'kicker' => "Sun – Fri: 8 AM – 7 PM\nSat: 9 AM – 4 PM",
         'link_label' => 'Healing naturally, living fully.',
         'extras' => [
@@ -216,8 +216,8 @@ $contact = [
         'heading' => 'Contact Information',
         'extras' => [
             'Our Address|Chitrawan Nature Cure Hospital, Bharatpur-15, Nepal',
-            'Phone|+977-9800000000',
-            'Email|info@chitrawannaturecure.com',
+            'Phone|+977 56-535213',
+            'Email|nchchitwan@gmail.com',
             'Opening Hours|Sunday – Friday: 8:00 AM – 7:00 PM
 Saturday: 9:00 AM – 4:00 PM',
         ],

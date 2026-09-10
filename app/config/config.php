@@ -26,7 +26,7 @@ if (!defined('SITE_NAME')) {
 }
 
 if (!defined('SITE_EMAIL')) {
-    define('SITE_EMAIL', 'info@chitrawannaturecure.com');
+    define('SITE_EMAIL', 'nchchitwan@gmail.com');
 }
 
 // ============ Admin panel credentials ============
@@ -41,8 +41,8 @@ if (!defined('ADMIN_USERNAME')) {
     define('ADMIN_USERNAME', 'admin');
 }
 if (!defined('ADMIN_PASSWORD_HASH')) {
-    // bcrypt hash of: Admin@Harmony2026
-    define('ADMIN_PASSWORD_HASH', '$2y$12$nqIh1GJFupDA0tWL0VZe9.sMATwOyJPgp5ldhrEktvuhW4yW/8Zy6');
+    // bcrypt hash of: Admin@Chitrawan2026
+    define('ADMIN_PASSWORD_HASH', '$2y$12$63sa9N1sIy5j2UvJjLC0Bu9weR.fossZMbQZg4TCto2T0/kgzn.ym');
 }
 
 // ============ Admin auto-lock ============
@@ -99,7 +99,7 @@ if (!defined('MAILER_FROM_NAME')) {
 
 // Where new-appointment notifications are sent:
 if (!defined('ADMIN_NOTIFY_EMAIL')) {
-    define('ADMIN_NOTIFY_EMAIL', 'info@chitrawannaturecure.com');
+    define('ADMIN_NOTIFY_EMAIL', 'nchchitwan@gmail.com');
 }
 
 // ============ Google OAuth (Admin Login) ==========

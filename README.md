@@ -105,7 +105,7 @@ Everything important is configured in **one file**: `app/config/config.php`.
 |---|---|---|
 | `BASE_URL` | auto-detected | Base path of the app (e.g. `/wellness`). Set the `BASE_URL` env var to override. |
 | `SITE_NAME` | `Chitrawan Nature Cure Hospital` | Site/brand name used in emails and headers. |
-| `SITE_EMAIL` | `info@chitrawan naturecure.com` | Public contact email. |
+| `SITE_EMAIL` | `nchchitwan@gmail.com` | Public contact email. |
 | `DB_HOST` | `localhost` | MySQL host (`DB_HOST` env var overrides). |
 | `DB_NAME` | `wellness` | Database name (`DB_NAME` env var overrides). |
 | `DB_USER` | `root` | Database user (`DB_USER` env var overrides). |
@@ -115,7 +115,7 @@ Everything important is configured in **one file**: `app/config/config.php`.
 | `RESEND_API_KEY` | *(empty)* | Resend API key for emails (`RESEND_API_KEY` env var overrides). |
 | `MAILER_FROM` | `onboarding@resend.dev` | From-address for sent emails. |
 | `MAILER_FROM_NAME` | `SITE_NAME` | Display name for sent emails. |
-| `ADMIN_NOTIFY_EMAIL` | `info@chitrawan naturecure.com` | Where new-appointment notifications are sent. |
+| `ADMIN_NOTIFY_EMAIL` | `nchchitwan@gmail.com` | Where new-appointment notifications are sent. |
 | `ADMIN_IDLE_LOCK_SECONDS` | `0` | Seconds of inactivity before the admin lock screen appears (0 = disabled). |
 | `ADMIN_SESSION_TIMEOUT` | `1800` | Hard server-side session expiry (30 min). |
 | `ADMIN_LOCK_ON_ENTRY` | `false` | Show the lock screen on entry (false = disabled). |
@@ -130,7 +130,7 @@ The admin panel is at **`{BASE_URL}/admin`**.
 
 **Default credentials (local install):**
 - Username: `admin`
-- Password: `Admin@Harmony2026`
+- Password: `Admin@Chitrawan2026`
 
 > ⚠️ **Change the default password immediately after deploying** — see below.
 
