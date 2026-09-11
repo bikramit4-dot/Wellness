@@ -27,10 +27,17 @@ $site = [
     ],
     // Top bar information (editable from Admin → Pages → Site Settings → Top Bar).
     //   link=phone · sub_content=email · kicker=opening hours
+    // Navigation menu (editable from Admin → Pages → Site Settings →
+    // Navigation Menu). Each line: Label | URL. When the list is empty the
+    // header falls back to the standard menu with therapy dropdowns
+    // auto-generated from the `therapies` table (admin Content → Therapies).
+    'nav' => [
+        'extras' => [],
+    ],
     'topbar' => [
         'link' => '+977 56-535213',
         'sub_content' => 'nchchitwan@gmail.com',
-        'kicker' => 'Sun \u2013 Fri: 8:00 AM \u2013 7:00 PM',
+        'kicker' => 'Sun – Fri: 8:00 AM – 7:00 PM',
     ],
     // Footer information (editable from Admin → Pages → Site Settings →
     // Footer Information). Reuses the shared section columns:
@@ -47,7 +54,7 @@ $site = [
         'extras' => [
             'Facebook | #',
             'Instagram | #',
-            'Twitter / X | #',
+            'TikTok | #',
         ],
     ],
 ];
@@ -135,11 +142,14 @@ $about = [
         'content' => 'Meet the people and philosophy behind Chitrawan Nature Cure Hospital — where natural healing is a way of life.',
     ],
     'founder' => [
-        'kicker' => '01 · Founder',
-        'heading' => 'Meet Our Founder',
+        'kicker' => '01 · Our Founders',
+        'heading' => 'Meet Our Founders',
         'sub_content' => 'Dr. Rajesh Sharma|Founder & Holistic Medicine Specialist',
         'content' => "Dr. Rajesh Sharma established Chitrawan Nature Cure Hospital with the vision of creating a healthcare facility that promotes natural healing and healthy living. With more than twenty years of experience in holistic medicine, he believes prevention and lifestyle changes are the keys to long-term wellness.\n\nHis mission is to help people heal naturally and live healthier lives through personalized care and compassionate treatment.",
         'image' => BASE_URL . '/public/uploads/photos/photo-1576091160399-112ba8d25d1d.jpg',
+        'extras' => [
+            'Dr. Sunita Sharma|Co-Founder & Yoga Therapy Director|' . BASE_URL . '/public/uploads/photos/photo-1545205597-3d9d02c29597.jpg|Dr. Sunita Sharma co-founded Chitrawan Nature Cure Hospital with a vision of combining classical yoga therapy with modern natural medicine. She leads the yoga and mindfulness programs and has guided thousands of patients toward calmer, healthier lives.',
+        ],
     ],
     'approach' => [
         'kicker' => '02 · Our Approach',
@@ -159,15 +169,15 @@ $about = [
         'heading' => 'Our Doctors & Specialists',
         'content' => 'A multidisciplinary team working together for your complete care.',
         'extras' => [
-            'Naturopathy Specialists|Experts in natural medicine, detoxification, and lifestyle management.|icon-leaf|' . BASE_URL . '/public/uploads/photos/photo-1543269865-cbf427effbad.jpg',
-            'Physiotherapists|Specialists in pain relief, rehabilitation, posture correction, and movement therapy.|icon-activity|' . BASE_URL . '/public/uploads/photos/photo-1571019613454-1cb2f99b2d8b.jpg',
-            'Yoga Therapists|Certified instructors providing yoga therapy and mindfulness practices.|icon-moon|' . BASE_URL . '/public/uploads/photos/photo-1512290923902-8a9f81dc236c.jpg',
-            'Nutritionists|Professionals who create personalized diet plans and nutritional guidance.|icon-droplet|' . BASE_URL . '/public/uploads/photos/photo-1498837167922-ddd27525d352.jpg',
-            'Wellness Consultants|Experts who guide patients in maintaining a balanced lifestyle.|icon-users|' . BASE_URL . '/public/uploads/photos/photo-1466692476868-aef1dfb1e735.jpg',
+            'Dr. Meena Gurung|Naturopathy Specialist|' . BASE_URL . '/public/uploads/photos/photo-1543269865-cbf427effbad.jpg',
+            'Anil Thapa|Senior Physiotherapist|' . BASE_URL . '/public/uploads/photos/photo-1571019613454-1cb2f99b2d8b.jpg',
+            'Sita Adhikari|Yoga Therapist|' . BASE_URL . '/public/uploads/photos/photo-1512290923902-8a9f81dc236c.jpg',
+            'Nirmala K.C.|Nutritionist|' . BASE_URL . '/public/uploads/photos/photo-1498837167922-ddd27525d352.jpg',
+            'Prakash Shrestha|Wellness Consultant|' . BASE_URL . '/public/uploads/photos/photo-1466692476868-aef1dfb1e735.jpg',
         ],
     ],
     'vision' => [
-        'kicker' => '04 · Our Vision',
+        'kicker' => '06 · Our Vision',
         'heading' => 'Our Vision',
         'image' => BASE_URL . '/public/uploads/photos/photo-1519823551278-64ac92734fb1.jpg',
         'extras' => [
@@ -175,7 +185,7 @@ $about = [
         ],
     ],
     'mission' => [
-        'kicker' => '05 · Our Mission',
+        'kicker' => '04 · Our Mission',
         'heading' => 'Our Mission',
         'content' => 'The promises we make to every patient who walks through our doors.',
         'sub_content' => 'What We Are Committed To',
@@ -189,7 +199,7 @@ $about = [
         ],
     ],
     'group' => [
-        'kicker' => '06 · Our Group',
+        'kicker' => '05 · Our Group',
         'heading' => 'Our Group',
         'content' => 'The people who make Chitrawan Nature Cure Hospital a place of healing.',
         'image' => BASE_URL . '/public/uploads/photos/photo-1544367567-0f2fcb009e0b.jpg',

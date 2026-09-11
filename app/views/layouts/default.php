@@ -11,6 +11,12 @@
 </head>
 <body data-base="<?= Security::e(BASE_URL) ?>">
 
+<?php
+// View helpers (sec(), sec_url(), sec_social_url(), …) — loaded before the
+// header partials render, since the nav uses sec_social_url(). require_once:
+// page views include this too.
+require_once APP_ROOT . '/app/views/partials/section_helpers.php';
+?>
 <!-- ============ SVG Icon Sprite ============ -->
 <?php require APP_ROOT . '/app/views/partials/icons.php'; ?>
 
@@ -40,73 +46,76 @@ $_topbarHours = trim((string) ($_topbar['kicker'] ?? 'Sun – Fri: 8:00 AM – 7
 <header class="site-header" id="siteHeader">
     <div class="container nav-wrap">
         <?php require APP_ROOT . '/app/views/partials/brand.php'; ?>
-        <nav class="main-nav" id="mainNav" aria-label="Main navigation">
-            <a class="nav-link" href="<?= BASE_URL ?>/">Home</a>
+        <?php
+// ---- Navigation menu -------------------------------------------------
+// Fully admin-manageable (Admin → Pages → Site Settings → Navigation Menu):
+//   • Custom links ("Label | URL" per line) replace the standard menu.
+//   • With no custom links, the standard menu is used and the four therapy
+//     dropdowns are AUTO-GENERATED from the therapies table (Admin →
+//     Content → Therapies), so adding/renaming a therapy updates the menu.
+$_navCustom = (array) ($GLOBALS['__siteSections']['nav']['extras'] ?? []);
+$_navCustom = array_values(array_filter(array_map('trim', $_navCustom), static fn ($l) => $l !== ''));
+
+$_navGroups = [
+    ['/treatments', 'Treatments'],
+    ['/physiotherapy', 'Physiotherapy'],
+    ['/diet-therapy', 'Diet Therapy'],
+    ['/special-therapies', 'Special Therapies'],
+];
+if ($_navCustom === []) {
+    $_navTherapies = TherapyModel::all();
+    $_navByCategory = [];
+    foreach ($_navTherapies as $slug => $t) {
+        $_navByCategory[$t['category']][] = ['slug' => $slug, 'title' => (string) $t['title']];
+    }
+    foreach ($_navByCategory as $cat => $items) {
+        usort($items, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
+        $_navByCategory[$cat] = $items;
+    }
+}
+?>
+<nav class="main-nav" id="mainNav" aria-label="Main navigation">
+    <?php if ($_navCustom !== []): ?>
+        <?php foreach ($_navCustom as $_navLine): ?>
+            <?php
+            $_bits = array_map('trim', explode('|', $_navLine));
+            $_label = $_bits[0];
+            $_href = sec_social_url($_bits[1] ?? '#');
+            ?>
+            <a class="nav-link" href="<?= Security::e($_href) ?>"><?= Security::e($_label) ?></a>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <a class="nav-link" href="<?= BASE_URL ?>/">Home</a>
+        <div class="dropdown">
+            <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/about" aria-haspopup="true" aria-expanded="false">About <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
+            <div class="dropdown-menu">
+                <a href="<?= BASE_URL ?>/about">About Us</a>
+                <a href="<?= BASE_URL ?>/about#founder">Founder</a>
+                <a href="<?= BASE_URL ?>/about#approach">Our Approach</a>
+                <a href="<?= BASE_URL ?>/about#doctors">Our Doctors</a>
+                <a href="<?= BASE_URL ?>/about#mission">Our Mission</a>
+                <a href="<?= BASE_URL ?>/about#group">Our Group</a>
+                <a href="<?= BASE_URL ?>/about#vision">Our Vision</a>
+            </div>
+        </div>
+        <?php foreach ($_navGroups as [$_navPath, $_navLabel]): ?>
             <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/about" aria-haspopup="true" aria-expanded="false">About <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
+                <a class="nav-link dropdown-toggle" href="<?= BASE_URL . $_navPath ?>" aria-haspopup="true" aria-expanded="false"><?= Security::e($_navLabel) ?> <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
                 <div class="dropdown-menu">
-                    <a href="<?= BASE_URL ?>/about">About Us</a>
-                    <a href="<?= BASE_URL ?>/about#founder">Founder</a>
-                    <a href="<?= BASE_URL ?>/about#approach">Our Approach</a>
-                    <a href="<?= BASE_URL ?>/about#doctors">Our Doctors</a>
-                    <a href="<?= BASE_URL ?>/about#vision">Our Vision</a>
-                    <a href="<?= BASE_URL ?>/about#mission">Our Mission</a>
-                    <a href="<?= BASE_URL ?>/about#group">Our Group</a>
+                    <a href="<?= BASE_URL . $_navPath ?>">All <?= Security::e($_navLabel) ?></a>
+                    <?php foreach ($_navByCategory[$_navPath] ?? [] as $_navItem): ?>
+                        <a href="<?= BASE_URL . $_navPath . '/' . Security::e($_navItem['slug']) ?>"><?= Security::e($_navItem['title']) ?></a>
+                    <?php endforeach; ?>
                 </div>
             </div>
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/treatments" aria-haspopup="true" aria-expanded="false">Treatments <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
-                <div class="dropdown-menu">
-                    <a href="<?= BASE_URL ?>/treatments">All Treatments</a>
-                    <a href="<?= BASE_URL ?>/treatments/naturopathy">Naturopathy</a>
-                    <a href="<?= BASE_URL ?>/treatments/yoga-therapy">Yoga Therapy</a>
-                    <a href="<?= BASE_URL ?>/treatments/acupuncture">Acupuncture</a>
-                </div>
-            </div>
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/physiotherapy" aria-haspopup="true" aria-expanded="false">Physiotherapy <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
-                <div class="dropdown-menu">
-                    <a href="<?= BASE_URL ?>/physiotherapy">All Physiotherapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/physical-therapy">Physical Therapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/electrotherapy">Electrotherapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/rehabilitation-therapy">Rehabilitation Therapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/postural-therapy">Postural Therapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/fitness-therapy">Fitness Therapy</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/cardiovascular-endurance-training">Cardiovascular &amp; Endurance</a>
-                    <a href="<?= BASE_URL ?>/physiotherapy/xone-exercise">Xone Exercise</a>
-                </div>
-            </div>
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/diet-therapy" aria-haspopup="true" aria-expanded="false">Diet Therapy <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
-                <div class="dropdown-menu">
-                    <a href="<?= BASE_URL ?>/diet-therapy">All Diet Therapy</a>
-                    <a href="<?= BASE_URL ?>/diet-therapy/therapeutic-fasting">Therapeutic Fasting</a>
-                    <a href="<?= BASE_URL ?>/diet-therapy/raw-diet-therapy">Raw Diet Therapy</a>
-                    <a href="<?= BASE_URL ?>/diet-therapy/bland-food-therapy">Bland Food Therapy</a>
-                    <a href="<?= BASE_URL ?>/diet-therapy/natural-botanicals">Natural Botanicals</a>
-                    <a href="<?= BASE_URL ?>/diet-therapy/organic-farm-produce">Organic Farm Produce</a>
-                </div>
-            </div>
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/special-therapies" aria-haspopup="true" aria-expanded="false">Special Therapies <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
-                <div class="dropdown-menu">
-                    <a href="<?= BASE_URL ?>/special-therapies">All Special Therapies</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/salt-glow-massage">Salt Glow Massage</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/chakra-mindfulness-practices">Chakra Mindfulness</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/paida-lajin-therapy">Paida Lajin Therapy</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/alkaline-water-therapy">Alkaline Water Therapy</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/agnihotra-therapy">Agnihotra Therapy</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/weight-nutritional-management">Weight &amp; Nutritional Management</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/asthma-care-program">Asthma Care Program</a>
-                    <a href="<?= BASE_URL ?>/special-therapies/diabetes-management-program">Diabetes Management</a>
-                </div>
-            </div>
-            <a class="nav-link" href="<?= BASE_URL ?>/tariff">Tariff</a>
-            <a class="nav-link" href="<?= BASE_URL ?>/gallery">Gallery</a>
-            <a class="nav-link" href="<?= BASE_URL ?>/blog">Blog</a>
-            <a class="nav-link" href="<?= BASE_URL ?>/contact">Contact</a>
-            <a class="btn btn-primary nav-cta" href="<?= BASE_URL ?>/contact">Book Now</a>
-        </nav>
+        <?php endforeach; ?>
+        <a class="nav-link" href="<?= BASE_URL ?>/tariff">Tariff</a>
+        <a class="nav-link" href="<?= BASE_URL ?>/gallery">Gallery</a>
+        <a class="nav-link" href="<?= BASE_URL ?>/blog">Blog</a>
+        <a class="nav-link" href="<?= BASE_URL ?>/contact">Contact</a>
+    <?php endif; ?>
+    <a class="btn btn-primary nav-cta" href="<?= BASE_URL ?>/contact">Book Now</a>
+</nav>
         <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
             <svg class="icon"><use href="#icon-menu"/></svg>
         </button>
@@ -153,6 +162,10 @@ $_topbarHours = trim((string) ($_topbar['kicker'] ?? 'Sun – Fri: 8:00 AM – 7
 
 <!-- ============ Footer ============ -->
 <?php
+// The footer uses section helpers (sec_social_url, …). Some page views don't
+// include section_helpers.php themselves — the require_once at the top of
+// this layout already covers every case (safe even when a view loaded it).
+
 // Editable footer information (Admin → Pages → Site Settings → Footer
 // Information). Maps to the shared section columns: content=tagline,
 // heading=address, sub_content=email, link=phone, kicker=hours,
@@ -185,14 +198,36 @@ $fiHoursHtml = implode('<br>', array_map(
                 <div class="social-row">
                     <?php foreach ($fiSocials as $line): ?>
                         <?php
-                        $fiBits = array_map('trim', explode('|', (string) $line, 2));
-                        $fiLabel = $fiBits[0] ?? '';
-                        $fiUrl = $fiBits[1] ?? '#';
-                        $fiLower = strtolower($fiLabel);
+                        $fiLine = trim((string) $line);
+                        if ($fiLine === '') { continue; }
+                        if (str_contains($fiLine, '|')) {
+                            [$fiLabel, $fiRawUrl] = array_pad(array_map('trim', explode('|', $fiLine, 2)), 2, '');
+                        } else {
+                            // No "Label | URL" split — treat the whole line as the URL.
+                            $fiLabel = '';
+                            $fiRawUrl = $fiLine;
+                        }
+                        $fiUrl = sec_social_url($fiRawUrl);
+                        if ($fiLabel === '') {
+                            // Derive a friendly label from the link's domain.
+                            $fiHost = strtolower((string) (parse_url($fiUrl, PHP_URL_HOST) ?: ''));
+                            $fiLabel = match (true) {
+                                str_contains($fiHost, 'facebook') => 'Facebook',
+                                str_contains($fiHost, 'instagram') => 'Instagram',
+                                str_contains($fiHost, 'tiktok') => 'TikTok',
+                                str_contains($fiHost, 'twitter') || in_array($fiHost, ['x.com', 'www.x.com'], true) => 'X (Twitter)',
+                                str_contains($fiHost, 'youtube') || str_contains($fiHost, 'youtu.be') => 'YouTube',
+                                $fiHost !== '' => ucfirst(preg_replace('/^www\./', '', $fiHost)),
+                                default => 'Link',
+                            };
+                        }
+                        // Icon: match against label AND url (label may be custom).
+                        $fiLower = strtolower($fiLabel . ' ' . $fiUrl);
                         $fiIcon = 'icon-link';
-                        if (str_contains($fiLower, 'face') || str_contains($fiLower, 'fb')) { $fiIcon = 'icon-facebook'; }
+                        if (str_contains($fiLower, 'face')) { $fiIcon = 'icon-facebook'; }
                         elseif (str_contains($fiLower, 'insta')) { $fiIcon = 'icon-instagram'; }
-                        elseif (str_contains($fiLower, 'twi') || $fiLower === 'x') { $fiIcon = 'icon-twitter'; }
+                        elseif (str_contains($fiLower, 'tiktok') || str_contains($fiLower, 'tik tok')) { $fiIcon = 'icon-tiktok'; }
+                        elseif (str_contains($fiLower, 'twitter') || preg_match('~//(www\.)?x\.com~i', $fiUrl)) { $fiIcon = 'icon-twitter'; }
                         ?>
                         <a href="<?= Security::e($fiUrl) ?>" aria-label="<?= Security::e($fiLabel) ?>" target="_blank" rel="noopener"><svg class="icon"><use href="#<?= Security::e($fiIcon) ?>"/></svg></a>
                     <?php endforeach; ?>

@@ -123,6 +123,7 @@
         </a>
         <a href="<?= BASE_URL ?>/admin/reviews" class="sidebar-link <?= $__currentPath === '/admin/reviews' ? 'active' : '' ?>">
             <svg class="icon"><use href="#icon-star"/></svg> Customer Reviews
+            <?php $__reviewPending = (int) (TestimonialModel::statusCounts()['pending'] ?? 0); if ($__reviewPending > 0): ?> <span class="sidebar-badge"><?= $__reviewPending ?></span><?php endif; ?>
         </a>
         <a href="<?= BASE_URL ?>/admin/content/team" class="sidebar-link <?= $__currentPath === '/admin/content/team' ? 'active' : '' ?>">
             <svg class="icon"><use href="#icon-users"/></svg> Team

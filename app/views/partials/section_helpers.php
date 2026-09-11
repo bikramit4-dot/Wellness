@@ -68,6 +68,38 @@ if (!function_exists('sec_url')) {
 }
 
 /**
+ * Normalize a social-link URL entered in the admin panel.
+ *
+ * "facebook.com/page" or "www.tiktok.com/@x" → "https://facebook.com/page"
+ * (so it opens the social network instead of a page inside this project).
+ * Full URLs (https://…), internal paths (/page → BASE_URL./page) and "#"
+ * are kept/normalized as appropriate.
+ */
+if (!function_exists('sec_social_url')) {
+    function sec_social_url(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '' || $url === '#') {
+            return '#';
+        }
+        // Already absolute (http://, https://, protocol-relative //) → keep.
+        if (preg_match('~^(https?:)?//~i', $url)) {
+            return $url;
+        }
+        // Internal path starting with "/" → prefix with BASE_URL.
+        if ($url[0] === '/') {
+            return BASE_URL . $url;
+        }
+        // Looks like a domain (contains a dot) → force https:// in front.
+        if (str_contains($url, '.')) {
+            return 'https://' . $url;
+        }
+        // Anything else: treat as an internal path.
+        return BASE_URL . '/' . ltrim($url, '/');
+    }
+}
+
+/**
  * Parse "Title | Text" lines (e.g. badges, info items, stat values).
  *
  * @return array<int, array{title: string, text: string}>

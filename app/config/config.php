@@ -68,7 +68,7 @@ if (!defined('ADMIN_LOCK_ON_ENTRY')) {
 // XAMPP defaults: host 'localhost', user 'root', empty password.
 // The schema is in database.sql — see also app/scripts/seed.php.
 if (!defined('DB_HOST')) {
-    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
 }
 if (!defined('DB_NAME')) {
     define('DB_NAME', getenv('DB_NAME') ?: 'wellness');

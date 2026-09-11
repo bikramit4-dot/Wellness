@@ -1,3 +1,4 @@
+<div class="qr-payments-page">
 <div class="admin-head">
     <div>
         <span class="kicker">Admin Panel</span>
@@ -77,7 +78,7 @@
                     <?php $pShot = (string) ($p['screenshot'] ?? ''); ?>
                     <?php $pMsg = (string) ($p['message'] ?? ''); ?>
                     <tr>
-                        <td>
+                        <td data-label="Screenshot">
                             <?php if ($pShot !== ''): ?>
                                 <a class="qr-thumb" href="<?= Security::e($pShot) ?>" target="_blank" rel="noopener" title="Open payment screenshot">
                                     <img src="<?= Security::e($pShot) ?>" alt="Payment screenshot" loading="lazy">
@@ -86,14 +87,14 @@
                                 <span class="row-note">—</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Name">
                             <strong><?= Security::e($p['name'] ?? '') ?></strong>
                             <?php if ($pMsg !== ''): ?>
                                 <span class="row-note" title="<?= Security::e($pMsg) ?>"><?= Security::e(strlen($pMsg) > 60 ? substr($pMsg, 0, 57) . '…' : $pMsg) ?></span>
                             <?php endif; ?>
                         </td>
-                        <td><strong><?= Security::e($p['package'] ?? '') ?: '—' ?></strong></td>
-                        <td>
+                        <td data-label="Package"><strong><?= Security::e($p['package'] ?? '') ?: '—' ?></strong></td>
+                        <td data-label="Contact / Address">
                             <a href="mailto:<?= Security::e($p['email'] ?? '') ?>"><?= Security::e($p['email'] ?? '') ?></a>
                             <?php if (!empty($p['phone'])): ?>
                                 <span class="row-note"><?= Security::e($p['phone']) ?></span>
@@ -102,11 +103,11 @@
                                 <span class="row-note"><?= Security::e($p['address']) ?></span>
                             <?php endif; ?>
                         </td>
-                        <td><strong><?= Security::e($p['amount'] ?? '') ?></strong></td>
-                        <td><?= Security::e($p['transaction_id'] ?? '') ?></td>
-                        <td><span class="badge badge-<?= Security::e($p['status'] ?? 'new') ?>"><?= Security::e(ucfirst($p['status'] ?? 'new')) ?></span></td>
-                        <td><span class="row-note"><?= Security::e(date('M j, Y g:i A', strtotime($p['created_at'] ?? 'now'))) ?></span></td>
-                        <td class="col-actions">
+                        <td data-label="Amount"><strong><?= Security::e($p['amount'] ?? '') ?></strong></td>
+                        <td data-label="Transaction"><?= Security::e($p['transaction_id'] ?? '') ?></td>
+                        <td data-label="Status"><span class="badge badge-<?= Security::e($p['status'] ?? 'new') ?>"><?= Security::e(ucfirst($p['status'] ?? 'new')) ?></span></td>
+                        <td data-label="Received"><span class="row-note"><?= Security::e(date('M j, Y g:i A', strtotime($p['created_at'] ?? 'now'))) ?></span></td>
+                        <td data-label="Actions" class="col-actions">
                             <form action="<?= BASE_URL ?>/admin/qr-status" method="post" class="row-form">
                                 <input type="hidden" name="csrf_token" value="<?= Security::e($csrf) ?>">
                                 <input type="hidden" name="id" value="<?= $pId ?>">
@@ -131,3 +132,4 @@
         </table>
     </div>
 <?php endif; ?>
+</div>

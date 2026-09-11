@@ -36,7 +36,7 @@ A complete, database-driven wellness center website built with **vanilla PHP 8**
 wellness/
 ├── index.php                 # Front controller (all requests route through here)
 ├── .htaccess                 # Pretty-URL rewrite rules
-├── database.sql              # Database schema (creates DB + all tables)
+├── database.sql              # Complete database: tables + default content (one import = ready)
 ├── README.md
 ├── app/
 │   ├── config/config.php     # ⚙️ ALL configuration lives here (edit this!)
@@ -74,15 +74,15 @@ Install [XAMPP](https://www.apachefriends.org/) (Apache + PHP + MySQL). On macOS
 Open XAMPP Control and **start Apache and MySQL**.
 
 ### 3. Create the database
-Open **phpMyAdmin** (`http://localhost/phpmyadmin`) and import `database.sql` — this creates the `wellness` database and all tables.
+Open **phpMyAdmin** (`http://localhost/phpmyadmin`) and import `database.sql` — this creates the `wellness` database, all tables, **and all default content** (therapies, posts, page sections, admin login, …). One import and the site is ready.
 
 Or from a terminal:
 ```bash
 mysql -u root < database.sql
 ```
 
-### 4. Seed the content
-The app ships with default content in `app/data/*.php`. Load it into the database:
+### 4. (Optional) Re-sync the content
+`database.sql` already contains the default content, so this step is only needed if you changed files in `app/data/*.php` and want to push those changes into an existing database:
 
 ```bash
 /Applications/XAMPP/xamppfiles/bin/php app/scripts/seed.php
@@ -168,8 +168,16 @@ If no API key is set, the app still works — emails are simply skipped (and log
 
 ## 🗄️ Database & Content
 
-- `database.sql` creates the database and all **12 tables** (appointments, therapies, posts, gallery, testimonials, team, tariff_plans, tariff_services, features, offers, admin_users, page_sections, ...).
-- Default content lives in `app/data/*.php`. Re-apply it at any time:
+> ⚠️ **STRICT RULE — only TWO SQL files exist in this project, ever:**
+>
+> 1. **`database.sql`** (project root) — the complete fresh-install file: schema + default content + admin login. One import = working site.
+> 2. **`storage/backups/wellness-*.sql`** — real database backups (from Admin → Backup / `app/scripts/backup.php`). Import one only to restore.
+>
+> **Never create new one-off patch/migration SQL files** (no `update-*.sql`, no `fix-*.sql`).
+> To change content: edit `app/data/*.php` → run `php app/scripts/seed.php` → refresh `database.sql` by re-exporting (phpMyAdmin Export, or `app/scripts/backup.php` copied to the root). Both files always describe the **same `wellness` database**.
+
+- `database.sql` creates the database, all **13 tables** (appointments, qr_payments, therapies, posts, gallery, testimonials, team, tariff_plans, tariff_services, features, offers, admin_users, page_sections) **and loads all default content** — one import is enough.
+- `storage/backups/wellness-*.sql` files are database backups (made by Admin → Backup / `app/scripts/backup.php`). Keep them; import one only when restoring.- Default content lives in `app/data/*.php`. Re-sync it into an existing database at any time:
   ```bash
   php app/scripts/seed.php
   ```
@@ -221,14 +229,14 @@ define('RESEND_API_KEY', 're_YourResendApiKey');
 
 > Tip: you can skip editing and instead set the `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` environment variables in cPanel, but editing the file is simpler.
 
-### Step 4 — Import the database schema
+### Step 4 — Import the database
 1. Open **phpMyAdmin** in cPanel.
 2. Select your new database (`cpaneluser_wellness`) from the left sidebar.
 3. Go to **Import** → **Choose File** → select `database.sql` → **Go**.
-4. All tables are created (no data yet — that comes next).
+4. All tables are created **with the default content** — no seed script needed.
 
-### Step 5 — Seed the default content
-You need to run the seed script once so the site has content. Choose **one** of these methods:
+### Step 5 — (Optional) Re-sync content changes
+If you edited `app/data/*.php` after importing, push the changes with **one** of these methods. Otherwise skip to Step 6.
 
 **A) cPanel Terminal (easiest):** If your plan has **Terminal** (or SSH access):
 ```bash
@@ -277,7 +285,7 @@ cPanel → **MultiPHP Manager** → select **PHP 8.1 or newer** for your domain.
 
 | Script | What it does |
 |---|---|
-| `app/scripts/seed.php` | Creates tables and loads default content from `app/data/*.php` into the DB. **Re-run safely anytime.** |
+| `app/scripts/seed.php` | Re-syncs default content from `app/data/*.php` into the DB (database.sql already includes it). **Re-run safely anytime.** |
 | `app/scripts/admin-password.php` | Generates a new bcrypt `ADMIN_PASSWORD_HASH` for `config.php`. |
 | `app/scripts/fix-data-files.php` | Repairs `app/data/*.php` files after the image-localization migration. |
 | `app/scripts/localize-images.php` | One-off migration that rewrites remote Unsplash image URLs to local `public/uploads/photos/` files. |
@@ -291,7 +299,7 @@ cPanel → **MultiPHP Manager** → select **PHP 8.1 or newer** for your domain.
 | **Blank page or 500 error** | PHP < 8.0 — raise the PHP version (cPanel: MultiPHP Manager). Also check `storage/` write permissions. |
 | **Home loads, but other pages 404** | `.htaccess` was not uploaded (hidden file) or mod_rewrite is off. Re-upload with *Show Hidden Files* enabled. |
 | **`Database` errors on every page** | Wrong `DB_NAME`/`DB_USER`/`DB_PASS` in `config.php`, or the database wasn't created/imported. |
-| **Pages load but show no content** | The seed script hasn't been run — run `php app/scripts/seed.php`. |
+| **Pages load but show no content** | The database wasn't imported (or was emptied) — import `database.sql` again, or run `php app/scripts/seed.php`. |
 | **Images broken** | Uploads folder missing or not writable; or `BASE_URL` wrong (it should normally auto-detect). |
 | **Appointment emails not arriving** | `RESEND_API_KEY` empty, or `MAILER_FROM` domain not verified in Resend. Check PHP error log. |
 | **Admin image upload fails** | `public/uploads/` is not writable by the web server — change permissions. |

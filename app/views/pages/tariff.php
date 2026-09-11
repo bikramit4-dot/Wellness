@@ -135,7 +135,7 @@
                         </div>
                         <div>
                             <label for="phone">Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="phone" name="phone" required pattern="[+\d\s\-]{7,20}" placeholder="+977 56-535213">
+                            <input type="tel" id="phone" name="phone" required pattern="[+\d\s\-]{7,20}" placeholder="<?= Security::e($GLOBALS['__siteSections']['topbar']['link'] ?? '+977 56-535213') ?>">
                         </div>
                     </div>
                     <div>

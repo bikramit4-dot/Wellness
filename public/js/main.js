@@ -553,7 +553,7 @@
     }
 
     // ── Update sidebar badges ──────────────────────────────────────
-    function updateSidebarBadges(apptNew, qrNew) {
+    function updateSidebarBadges(apptNew, qrNew, reviewPending) {
         // Update appointment badge in sidebar
         var links = document.querySelectorAll('.sidebar-link');
         links.forEach(function(link) {
@@ -587,6 +587,20 @@
                     existingBadge.remove();
                 }
             }
+            if (href.indexOf('/admin/reviews') !== -1) {
+                if (reviewPending > 0) {
+                    if (existingBadge) {
+                        existingBadge.textContent = reviewPending;
+                    } else {
+                        var sp3 = document.createElement('span');
+                        sp3.className = 'sidebar-badge';
+                        sp3.textContent = reviewPending;
+                        link.appendChild(sp3);
+                    }
+                } else if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
         });
     }
 
@@ -594,6 +608,7 @@
     function notifIcon(type) {
         if (type === 'appointment') return '<svg class="icon"><use href="#icon-calendar"/></svg>';
         if (type === 'qr_payment') return '<svg class="icon"><use href="#icon-zap"/></svg>';
+        if (type === 'review') return '<svg class="icon"><use href="#icon-star"/></svg>';
         return '<svg class="icon"><use href="#icon-shield"/></svg>';
     }
 
@@ -629,7 +644,7 @@
                 setBadge(data.unread);
 
                 // Update sidebar badges
-                updateSidebarBadges(data.appt_new, data.qr_new);
+                updateSidebarBadges(data.appt_new, data.qr_new, data.review_pending);
 
                 // If there are NEW notifications (not the first load)
                 if (!isFirstPoll && data.new && data.new.length > 0) {
@@ -716,7 +731,7 @@ document.addEventListener('click', function (e) {
     var text = document.getElementById('pwText');
     var match = document.getElementById('pwMatch');
     var confirm = document.getElementById('confirm_password');
-    if (!pw) return;
+    if (pw) {
 
     pw.addEventListener('input', function () {
         var v = pw.value;
@@ -836,4 +851,48 @@ document.addEventListener('click', function (e) {
         // Initialize
         updateVisual();
     });
+
+    }
+
+    /* ---------- About page info-box modals ---------- */
+    (function () {
+        var modals = document.querySelectorAll('.info-modal');
+        if (modals.length === 0) return;
+
+        var lastFocus = null;
+
+        function openModal(modal) {
+            lastFocus = document.activeElement;
+            modal.hidden = false;
+            document.body.classList.add('modal-open');
+            var closeBtn = modal.querySelector('.info-modal-close');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeModal(modal) {
+            modal.hidden = true;
+            document.body.classList.remove('modal-open');
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        }
+
+        document.querySelectorAll('[data-modal-target]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var modal = document.querySelector(btn.getAttribute('data-modal-target'));
+                if (modal) openModal(modal);
+            });
+        });
+
+        modals.forEach(function (modal) {
+            modal.querySelectorAll('[data-modal-close]').forEach(function (el) {
+                el.addEventListener('click', function () { closeModal(modal); });
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            modals.forEach(function (modal) {
+                if (!modal.hidden) closeModal(modal);
+            });
+        });
+    })();
 })();

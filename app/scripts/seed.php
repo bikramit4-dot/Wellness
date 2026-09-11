@@ -121,10 +121,24 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS team (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(120) NOT NULL,
     role        VARCHAR(160) NOT NULL DEFAULT '',
+    image       VARCHAR(300) NOT NULL DEFAULT '',
     initials    VARCHAR(8)   NOT NULL DEFAULT '',
     avatar      VARCHAR(8)   NOT NULL DEFAULT 'a1',
     sort_order  INT          NOT NULL DEFAULT 0
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci");
+
+$teamCols = $pdo->query('SHOW COLUMNS FROM team')->fetchAll();
+$hasTeamImage = false;
+foreach ($teamCols as $column) {
+    if (($column['Field'] ?? '') === 'image') {
+        $hasTeamImage = true;
+        break;
+    }
+}
+if (!$hasTeamImage) {
+    $pdo->exec("ALTER TABLE team ADD COLUMN image VARCHAR(300) NOT NULL DEFAULT '' AFTER role");
+    echo "Team image column added.\n";
+}
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS tariff_plans (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -364,12 +378,13 @@ echo "Page sections seeded: $count\n";
 /* ---------- Team ---------- */
 $team = require APP_ROOT . '/app/data/team.php';
 $pdo->exec('DELETE FROM team');
-$stmt = $pdo->prepare('INSERT INTO team (name, role, initials, avatar, sort_order) VALUES (?, ?, ?, ?, ?)');
+$stmt = $pdo->prepare('INSERT INTO team (name, role, image, initials, avatar, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
 $i = 0;
 foreach ($team as $member) {
     $stmt->execute([
         $member['name'] ?? '',
         $member['role'] ?? '',
+        $member['image'] ?? '',
         $member['initials'] ?? '',
         $member['avatar'] ?? 'a1',
         ++$i,

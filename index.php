@@ -1,4 +1,11 @@
 <?php
+// Buffer all output until the request finishes. This guarantees HTTP headers
+// (redirects after forms, sessions, cache-control) always work, even if any
+// file ever prints stray whitespace/output before headers — the class of bug
+// that caused blank white pages on live hosting (where PHP's output_buffering
+// is off, unlike XAMPP).
+ob_start();
+
 // Load .env file (if present) before anything else reads env vars.
 require_once __DIR__ . '/app/core/Dotenv.php';
 Dotenv::load(__DIR__ . '/.env');

@@ -86,7 +86,7 @@ class ReviewController extends Controller
             'review',
             'New Review Submitted',
             $name . ' submitted a ' . $rating . '-star review: "' . mb_substr($quote, 0, 80) . '..."',
-            '/admin/testimonials'
+            '/admin/reviews'
         );
 
         $this->setFlash('success', 'Thank you for your review! It will be visible on our website after admin approval.');

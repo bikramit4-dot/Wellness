@@ -13,7 +13,7 @@ class NotificationModel
     /**
      * Add a new notification.
      *
-     * @param string $type    'appointment' | 'qr_payment' | 'system'
+    * @param string $type    'appointment' | 'qr_payment' | 'review' | 'system'
      * @param string $title   Short headline
      * @param string $message Detail text
      * @param string $link    URL to open when clicked

@@ -70,10 +70,12 @@ class AdminController extends Controller
             'listColumns' => [
                 ['key' => 'name', 'label' => 'Name'],
                 ['key' => 'role', 'label' => 'Role'],
+                ['key' => 'image', 'label' => 'Photo', 'type' => 'image'],
             ],
             'fields' => [
                 ['name' => 'name', 'label' => 'Full name', 'type' => 'text', 'required' => true],
                 ['name' => 'role', 'label' => 'Role / Title', 'type' => 'text', 'required' => true],
+                ['name' => 'image', 'label' => 'Photo', 'type' => 'image', 'hint' => 'Paste a photo URL, or upload a file from your computer.'],
                 ['name' => 'initials', 'label' => 'Initials (avatar)', 'type' => 'text', 'hint' => 'e.g. RS'],
                 ['name' => 'avatar', 'label' => 'Avatar color', 'type' => 'select', 'options' => ['a1', 'a2', 'a3', 'a4', 'a5', 'a6']],
                 ['name' => 'sort_order', 'label' => 'Sort order', 'type' => 'number'],
@@ -217,6 +219,12 @@ class AdminController extends Controller
                         ['name' => 'heading', 'label' => 'Brand name', 'type' => 'text', 'hint' => 'Shown next to the logo, e.g. Chitrawan Nature Cure Hospital'],
                     ],
                 ],
+                'nav' => [
+                    'label' => 'Navigation Menu',
+                    'fields' => [
+                        ['name' => 'extras', 'label' => 'Menu links', 'type' => 'list', 'hint' => 'One per line, format: Label | URL. Leave empty to keep the standard menu (with auto-generated therapy dropdowns). The Book Now button always appears last.'],
+                    ],
+                ],
                 'topbar' => [
                     'label' => 'Top Bar',
                     'fields' => [
@@ -234,7 +242,7 @@ class AdminController extends Controller
                         ['name' => 'link', 'label' => 'Phone', 'type' => 'text', 'hint' => 'e.g. +977 56-535213'],
                         ['name' => 'kicker', 'label' => 'Opening hours', 'type' => 'textarea', 'hint' => 'One line per period — each line appears on its own row.'],
                         ['name' => 'link_label', 'label' => 'Copyright tagline', 'type' => 'text', 'hint' => 'Small text beside the © copyright line.'],
-                        ['name' => 'extras', 'label' => 'Social links', 'type' => 'list', 'hint' => 'One per line, format: Label | URL — e.g. Facebook | https://facebook.com/yourpage'],
+                        ['name' => 'extras', 'label' => 'Social links', 'type' => 'list', 'hint' => 'One per line, format: Label | URL — e.g. Facebook | facebook.com/yourpage (https:// is added automatically; supported: Facebook, Instagram, TikTok, X)'],
                     ],
                 ],
             ],
@@ -331,30 +339,25 @@ class AdminController extends Controller
                 'founder' => ['label' => '01 · Founder', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                    ['name' => 'sub_content', 'label' => 'Name + role', 'type' => 'text', 'hint' => 'Format: Name | Role'],
-                    ['name' => 'content', 'label' => 'Bio', 'type' => 'textarea'],
-                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'sub_content', 'label' => 'First founder — name + role', 'type' => 'text', 'hint' => 'Format: Name | Role'],
+                    ['name' => 'content', 'label' => 'First founder — bio', 'type' => 'textarea'],
+                    ['name' => 'image', 'label' => 'First founder — photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'More founders', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL | Short bio — photo and bio optional. Leave empty for a single founder.'],
                 ]],
                 'approach' => ['label' => '02 · Our Approach', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
-                    ['name' => 'extras', 'label' => 'Checklist items', 'type' => 'list'],
+                    ['name' => 'extras', 'label' => 'Approach items', 'type' => 'list', 'hint' => 'One per line, format: Title | Description | icon | image URL — each becomes a clickable box that opens the details.'],
                 ]],
                 'doctors' => ['label' => '03 · Our Doctors', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
-                    ['name' => 'extras', 'label' => 'Specialist cards', 'type' => 'list', 'hint' => 'One per line, format: Title | Description | icon | image URL'],
+                    ['name' => 'extras', 'label' => 'Doctors', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL — e.g. Dr. Ram Thapa | Senior Physiotherapist | /wellness/public/uploads/photos/dr-ram.jpg. Photo optional (initials shown).'],
                 ]],
-                'vision' => ['label' => '04 · Our Vision', 'fields' => [
-                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
-                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
-                    ['name' => 'extras', 'label' => 'Card', 'type' => 'list', 'hint' => 'One line, format: Title | Text | icon'],
-                ]],
-                'mission' => ['label' => '05 · Our Mission', 'fields' => [
+                'mission' => ['label' => '04 · Our Mission', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
@@ -362,11 +365,17 @@ class AdminController extends Controller
                     ['name' => 'sub_content', 'label' => 'Card title', 'type' => 'text'],
                     ['name' => 'extras', 'label' => 'Commitments list', 'type' => 'list'],
                 ]],
-                'group' => ['label' => '06 · Our Group', 'fields' => [
+                'group' => ['label' => '05 · Our Group', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
                     ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                ]],
+                'vision' => ['label' => '06 · Our Vision', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'Card', 'type' => 'list', 'hint' => 'One line, format: Title | Text | icon'],
                 ]],
                 'cta' => ['label' => 'CTA Banner', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
@@ -1096,6 +1105,7 @@ class AdminController extends Controller
         // Also get the current appointment/payment counts for the sidebar badges
         $apptNew = (new AppointmentModel())->countByStatus('new');
         $qrNew = self::qrNewCount();
+        $reviewPending = (int) (TestimonialModel::statusCounts()['pending'] ?? 0);
 
         header('Content-Type: application/json');
         echo json_encode([
@@ -1104,6 +1114,7 @@ class AdminController extends Controller
             'new' => array_slice($new, 0, 10),
             'appt_new' => $apptNew,
             'qr_new' => $qrNew,
+            'review_pending' => $reviewPending,
             'time' => time(),
         ]);
         exit;
@@ -1738,8 +1749,81 @@ class AdminController extends Controller
 
         $page = self::PAGE_SECTIONS[$pageKey];
 
+        // About content items use the same add/edit/delete workflow as the
+        // Therapies manager while remaining stored in page_sections.extras.
+        if ($pageKey === 'about' && in_array($sectionKey, ['founder', 'approach', 'doctors', 'vision'], true)) {
+            if ($action === 'items' && $method === 'GET') {
+                $this->aboutItemList($sectionKey);
+                return;
+            }
+            if ($action === 'item-new' && $method === 'GET') {
+                $this->aboutItemForm($sectionKey, null);
+                return;
+            }
+            if ($action === 'item-edit' && $method === 'GET') {
+                $this->aboutItemForm($sectionKey, (int) ($_GET['index'] ?? -1));
+                return;
+            }
+            if ($action === 'item-save' && $method === 'POST') {
+                $this->saveAboutItem($sectionKey);
+                return;
+            }
+            if ($action === 'item-delete' && $method === 'POST') {
+                $this->deleteAboutItem($sectionKey);
+                return;
+            }
+        }
+
         if ($sectionKey === '' && $method === 'GET') {
             $this->pageSectionList($pageKey, $page);
+            return;
+        }
+
+        // ---- Custom sections (admin-added, stored as `custom-*` rows) ----
+        // Add new:        /admin/pages/{page}/custom-new          (GET)
+        // Save:           /admin/pages/{page}/custom-save         (POST)
+        // Edit existing:  /admin/pages/{page}/custom-{id}/edit    (GET)
+        // Save existing:  /admin/pages/{page}/custom-{id}/save    (POST)
+        // Delete:         /admin/pages/{page}/custom-{id}/delete  (POST)
+        if ($sectionKey === 'custom-new' && $method === 'GET') {
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+        if ($sectionKey === 'custom-save' && $method === 'POST') {
+            $this->saveCustomSection($pageKey);
+            return;
+        }
+        if (str_starts_with($sectionKey, 'custom-')) {
+            $customId = (int) substr($sectionKey, strlen('custom-'));
+            $existing = $customId > 0 ? PageSectionModel::find($customId) : null;
+            if ($existing === null || (string) $existing['page_key'] !== $pageKey
+                || !str_starts_with((string) $existing['section_key'], 'custom-')) {
+                $this->setFlash('danger', 'Unknown section.');
+                $this->redirect('/admin/pages/' . $pageKey);
+                return;
+            }
+            switch ($action) {
+                case 'edit':
+                    if ($method === 'GET') {
+                        $this->customSectionForm($pageKey, $existing);
+                        return;
+                    }
+                    break;
+                case 'save':
+                    if ($method === 'POST') {
+                        $this->saveCustomSection($pageKey, $existing);
+                        return;
+                    }
+                    break;
+                case 'delete':
+                    if ($method === 'POST') {
+                        $this->deleteCustomSection($pageKey, $existing);
+                        return;
+                    }
+                    break;
+            }
+            $this->setFlash('danger', 'Invalid request.');
+            $this->redirect('/admin/pages/' . $pageKey);
             return;
         }
 
@@ -1792,6 +1876,208 @@ class AdminController extends Controller
         ]);
     }
 
+    /** @return array{label:string, fields:array<int, string>} */
+    private function aboutItemDefinition(string $sectionKey): array
+    {
+        return match ($sectionKey) {
+            'founder' => ['label' => 'Founder', 'fields' => ['name', 'role', 'image', 'bio']],
+            'approach' => ['label' => 'Approach item', 'fields' => ['title', 'description', 'icon', 'image']],
+            'doctors' => ['label' => 'Doctor', 'fields' => ['name', 'role', 'image']],
+            'vision' => ['label' => 'Vision statement', 'fields' => ['title', 'text', 'icon']],
+            default => ['label' => 'About item', 'fields' => []],
+        };
+    }
+
+    /** @return array<int, array<string, string>> */
+    private function aboutItems(string $sectionKey): array
+    {
+        $sections = PageSectionModel::forPage('about', false);
+        $section = $sections[$sectionKey] ?? [];
+        $items = [];
+        if ($sectionKey === 'founder') {
+            $first = array_pad(array_map('trim', explode('|', (string) ($section['sub_content'] ?? ''), 2)), 2, '');
+            if ($first[0] !== '') {
+                $items[] = ['name' => $first[0], 'role' => $first[1], 'image' => (string) ($section['image'] ?? ''), 'bio' => (string) ($section['content'] ?? '')];
+            }
+            foreach ((array) ($section['extras'] ?? []) as $line) {
+                [$name, $role, $image, $bio] = array_pad(array_map('trim', explode('|', (string) $line, 4)), 4, '');
+                $items[] = ['name' => $name, 'role' => $role, 'image' => $image, 'bio' => $bio];
+            }
+            return $items;
+        }
+
+        foreach ((array) ($section['extras'] ?? []) as $line) {
+            $parts = array_pad(array_map('trim', explode('|', (string) $line)), 4, '');
+            $items[] = match ($sectionKey) {
+                'approach' => ['title' => $parts[0], 'description' => $parts[1], 'icon' => $parts[2], 'image' => $parts[3]],
+                'doctors' => ['name' => $parts[0], 'role' => $parts[1], 'image' => $parts[2]],
+                'vision' => ['title' => $parts[0], 'text' => $parts[1], 'icon' => $parts[2]],
+                default => [],
+            };
+        }
+        return $items;
+    }
+
+    private function aboutItemList(string $sectionKey): void
+    {
+        $definition = $this->aboutItemDefinition($sectionKey);
+        $this->render('admin/about_items', [
+            'title' => $definition['label'] . 's',
+            'layout' => 'admin',
+            'sectionKey' => $sectionKey,
+            'definition' => $definition,
+            'items' => $this->aboutItems($sectionKey),
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function aboutItemForm(string $sectionKey, ?int $index): void
+    {
+        $definition = $this->aboutItemDefinition($sectionKey);
+        $items = $this->aboutItems($sectionKey);
+        $item = $index !== null && $index >= 0 ? ($items[$index] ?? null) : null;
+        if ($index !== null && $index >= 0 && $item === null) {
+            $this->setFlash('danger', 'About item not found.');
+            $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+            return;
+        }
+        $this->render('admin/about_item_form', [
+            'title' => ($item === null ? 'Add ' : 'Edit ') . $definition['label'],
+            'layout' => 'admin',
+            'sectionKey' => $sectionKey,
+            'definition' => $definition,
+            'item' => $item ?? [],
+            'index' => $index,
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    private function saveAboutItem(string $sectionKey): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+            return;
+        }
+        $definition = $this->aboutItemDefinition($sectionKey);
+        $items = $this->aboutItems($sectionKey);
+        $index = (int) ($_POST['index'] ?? -1);
+        $previousImage = $index >= 0 ? (string) ($items[$index]['image'] ?? '') : '';
+        $item = [];
+        foreach ($definition['fields'] as $field) {
+            $item[$field] = Security::sanitizeText((string) ($_POST[$field] ?? ''));
+        }
+        if (!empty($_FILES['image']['name'])) {
+            $item['image'] = $this->handleImageUpload('image', 'about-' . $sectionKey, '/admin/pages/about/' . $sectionKey . '/items');
+        }
+        $nameField = $sectionKey === 'doctors' || $sectionKey === 'founder' ? 'name' : 'title';
+        if (trim((string) ($item[$nameField] ?? '')) === '') {
+            $this->setFlash('danger', $definition['label'] . ' name is required.');
+            $this->redirect('/admin/pages/about/' . $sectionKey . ($index >= 0 ? '/item-edit?index=' . $index : '/item-new'));
+            return;
+        }
+        if ($index >= 0 && isset($items[$index])) {
+            $items[$index] = $item;
+        } else {
+            $items[] = $item;
+        }
+
+        $sections = PageSectionModel::forPage('about', false);
+        $section = $sections[$sectionKey] ?? [];
+        $data = [
+            'id' => (int) ($section['id'] ?? 0),
+            'page_key' => 'about',
+            'section_key' => $sectionKey,
+            'kicker' => (string) ($section['kicker'] ?? ''),
+            'heading' => (string) ($section['heading'] ?? ''),
+            'content' => (string) ($section['content'] ?? ''),
+            'sub_content' => (string) ($section['sub_content'] ?? ''),
+            'image' => (string) ($section['image'] ?? ''),
+            'extras' => [],
+        ];
+        if ($sectionKey === 'founder') {
+            $first = array_shift($items) ?? ['name' => '', 'role' => '', 'image' => '', 'bio' => ''];
+            $data['sub_content'] = trim($first['name'] . '|' . $first['role'], '|');
+            $data['content'] = $first['bio'];
+            $data['image'] = $first['image'];
+        }
+        foreach ($items as $aboutItem) {
+            $data['extras'][] = match ($sectionKey) {
+                'approach' => implode('|', [$aboutItem['title'], $aboutItem['description'], $aboutItem['icon'], $aboutItem['image']]),
+                'doctors' => implode('|', [$aboutItem['name'], $aboutItem['role'], $aboutItem['image']]),
+                'vision' => implode('|', [$aboutItem['title'], $aboutItem['text'], $aboutItem['icon']]),
+                'founder' => implode('|', [$aboutItem['name'], $aboutItem['role'], $aboutItem['image'], $aboutItem['bio']]),
+                default => '',
+            };
+        }
+        if (PageSectionModel::save($data)) {
+            if ($previousImage !== '' && $previousImage !== (string) ($item['image'] ?? '')) {
+                $this->deleteUploadedFile($previousImage);
+            }
+            $this->setFlash('success', $definition['label'] . ' saved.');
+        } else {
+            $this->setFlash('danger', 'Could not save the ' . strtolower($definition['label']) . '.');
+        }
+        $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+    }
+
+    private function deleteAboutItem(string $sectionKey): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+            return;
+        }
+        $index = (int) ($_POST['index'] ?? -1);
+        $items = $this->aboutItems($sectionKey);
+        if (!isset($items[$index])) {
+            $this->setFlash('danger', 'About item not found.');
+            $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+            return;
+        }
+        array_splice($items, $index, 1);
+        $deletedImage = (string) ($this->aboutItems($sectionKey)[$index]['image'] ?? '');
+        $_POST['index'] = -1;
+        $_POST['name'] = $items[0]['name'] ?? '';
+        $_POST['role'] = $items[0]['role'] ?? '';
+        $_POST['image'] = $items[0]['image'] ?? '';
+        $_POST['bio'] = $items[0]['bio'] ?? '';
+        // Reuse the same normalized writer without accepting a new upload.
+        $this->saveAboutItemFromItems($sectionKey, $items, $deletedImage);
+    }
+
+    /** @param array<int, array<string, string>> $items */
+    private function saveAboutItemFromItems(string $sectionKey, array $items, string $deletedImage = ''): void
+    {
+        $sections = PageSectionModel::forPage('about', false);
+        $section = $sections[$sectionKey] ?? [];
+        $data = ['id' => (int) ($section['id'] ?? 0), 'page_key' => 'about', 'section_key' => $sectionKey, 'kicker' => (string) ($section['kicker'] ?? ''), 'heading' => (string) ($section['heading'] ?? ''), 'content' => (string) ($section['content'] ?? ''), 'sub_content' => (string) ($section['sub_content'] ?? ''), 'image' => (string) ($section['image'] ?? ''), 'extras' => []];
+        if ($sectionKey === 'founder') {
+            $first = array_shift($items) ?? ['name' => '', 'role' => '', 'image' => '', 'bio' => ''];
+            $data['sub_content'] = trim($first['name'] . '|' . $first['role'], '|');
+            $data['content'] = $first['bio'];
+            $data['image'] = $first['image'];
+        }
+        foreach ($items as $aboutItem) {
+            $data['extras'][] = match ($sectionKey) {
+                'approach' => implode('|', [$aboutItem['title'], $aboutItem['description'], $aboutItem['icon'], $aboutItem['image']]),
+                'doctors' => implode('|', [$aboutItem['name'], $aboutItem['role'], $aboutItem['image']]),
+                'vision' => implode('|', [$aboutItem['title'], $aboutItem['text'], $aboutItem['icon']]),
+                'founder' => implode('|', [$aboutItem['name'], $aboutItem['role'], $aboutItem['image'], $aboutItem['bio']]),
+                default => '',
+            };
+        }
+        if (PageSectionModel::save($data)) {
+            if ($deletedImage !== '') {
+                $this->deleteUploadedFile($deletedImage);
+            }
+            $this->setFlash('success', $this->aboutItemDefinition($sectionKey)['label'] . ' deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete the item.');
+        }
+        $this->redirect('/admin/pages/about/' . $sectionKey . '/items');
+    }
+
     private function pageSectionList(string $pageKey, array $page): void
     {
         $sections = PageSectionModel::forPage($pageKey, false);
@@ -1807,12 +2093,28 @@ class AdminController extends Controller
             ];
         }
 
+        // Custom (admin-added) sections stored as custom-* rows.
+        $customs = [];
+        foreach ($sections as $sectionKey => $data) {
+            if (!str_starts_with($sectionKey, 'custom-')) { continue; }
+            $csType = (string) ($data['sub_content'] ?? 'custom');
+            $customs[$sectionKey] = [
+                'id' => (int) ($data['id'] ?? 0),
+                'heading' => (string) ($data['heading'] ?? ''),
+                'kicker' => (string) ($data['kicker'] ?? ''),
+                'content' => (string) ($data['content'] ?? ''),
+                'boxCount' => count((array) ($data['extras'] ?? [])),
+                'typeLabel' => self::CUSTOM_SECTION_TYPES[$csType]['label'] ?? 'Custom',
+            ];
+        }
+
         $this->render('admin/page_sections', [
             'title' => 'Edit ' . $page['label'] . ' Page',
             'layout' => 'admin',
             'pageKey' => $pageKey,
             'page' => $page,
             'previews' => $previews,
+            'customs' => $customs,
             'csrf' => Security::csrfToken(),
         ]);
     }
@@ -1938,6 +2240,240 @@ class AdminController extends Controller
             $this->setFlash('success', 'Section reset to its default content.');
         } else {
             $this->setFlash('danger', 'Could not reset that section.');
+        }
+
+        $this->redirect('/admin/pages/' . $pageKey);
+    }
+
+    /* ---------- Custom (admin-added) page sections ---------- */
+
+    /**
+     * The kinds of section that can be added from the page editor.
+     * Each type has its own line format for the "boxes" list and its own
+     * look on the live page. `sub_content` stores the chosen type slug.
+     */
+    private const CUSTOM_SECTION_TYPES = [
+        'founder' => [
+            'label' => 'Founder(s)',
+            'icon' => 'icon-users',
+            'headingDefault' => 'Our Founders',
+            'extrasLabel' => 'Founders',
+            'hint' => 'Add founders with separate name, role, photo URL or upload, and full bio fields. Clicking the box on the site opens the full bio.',
+        ],
+        'approach' => [
+            'label' => 'Our Approach',
+            'icon' => 'icon-leaf',
+            'headingDefault' => 'Our Approach',
+            'extrasLabel' => 'Approach items',
+            'hint' => 'One item per line, format: Title | Description | Icon | Photo URL — icon and photo optional (leaf icon used by default).',
+        ],
+        'doctors' => [
+            'label' => 'Our Doctors',
+            'icon' => 'icon-star',
+            'headingDefault' => 'Our Doctors',
+            'extrasLabel' => 'Doctors',
+            'hint' => 'One doctor per line, format: Name | Role | Photo URL — photo optional (initials avatar shown without one).',
+        ],
+        'group' => [
+            'label' => 'Our Group (Team)',
+            'icon' => 'icon-users',
+            'headingDefault' => 'Our Group',
+            'extrasLabel' => 'Team members',
+            'hint' => 'One member per line, format: Name | Role | Photo URL | Short bio — photo and bio optional.',
+        ],
+        'vision' => [
+            'label' => 'Vision / Statement',
+            'icon' => 'icon-sun',
+            'headingDefault' => 'Our Vision',
+            'extrasLabel' => 'Statements',
+            'hint' => 'One statement per line, format: Title | Full text | Icon — shown as a wide card; the full text opens in the popup.',
+        ],
+        'custom' => [
+            'label' => 'Custom (free-form)',
+            'icon' => 'icon-layout',
+            'headingDefault' => 'Our Facilities',
+            'extrasLabel' => 'Boxes',
+            'hint' => 'One box per line, format: Title | Details | Photo URL — the general-purpose choice; boxes with photos show them, others show a leaf icon.',
+        ],
+    ];
+
+    /**
+     * "What do you want to add?" page — lets the admin pick the kind of
+     * section (Founder, Our Approach, Our Doctors, …) before the form opens.
+     */
+    private function customSectionTypeChooser(string $pageKey): void
+    {
+        $this->render('admin/custom_section_types', [
+            'title' => 'Add Section',
+            'layout' => 'admin',
+            'pageKey' => $pageKey,
+            'pageLabel' => self::PAGE_SECTIONS[$pageKey]['label'],
+            'types' => self::CUSTOM_SECTION_TYPES,
+        ]);
+    }
+
+    /**
+     * Form for creating (row === null) or editing a custom section.
+     * The chosen type controls the field labels, hints and live-page look.
+     */
+    private function customSectionForm(string $pageKey, ?array $row, string $type = 'custom'): void
+    {
+        $typeDef = self::CUSTOM_SECTION_TYPES[$type] ?? self::CUSTOM_SECTION_TYPES['custom'];
+
+        $item = [];
+        $customId = 0;
+        if ($row !== null) {
+            $customId = (int) $row['id'];
+            $type = (string) ($row['sub_content'] ?? '');
+            if (!isset(self::CUSTOM_SECTION_TYPES[$type])) { $type = 'custom'; }
+            $typeDef = self::CUSTOM_SECTION_TYPES[$type];
+            $item = [
+                'heading' => (string) $row['heading'],
+                'kicker' => (string) $row['kicker'],
+                'content' => (string) $row['content'],
+                'extras' => PageSectionModel::decodeExtras((string) $row['extras']),
+            ];
+            if ($type === 'founder') {
+                $item['founders'] = [];
+                foreach ((array) $item['extras'] as $line) {
+                    $parts = array_pad(array_map('trim', explode('|', (string) $line, 4)), 4, '');
+                    $item['founders'][] = [
+                        'name' => $parts[0],
+                        'role' => $parts[1],
+                        'image' => $parts[2],
+                        'bio' => $parts[3],
+                    ];
+                }
+            }
+        }
+
+        $fields = [
+            ['name' => 'heading', 'label' => 'Section heading', 'type' => 'text', 'required' => true, 'hint' => 'The heading visitors will see, for example: Meet Our Founders.'],
+            ['name' => 'kicker', 'label' => 'Small label', 'type' => 'text', 'hint' => 'Optional label above the heading, for example: 07 · Our Founders.'],
+            ['name' => 'content', 'label' => 'Short introduction', 'type' => 'textarea', 'hint' => 'Optional introduction shown above the founder boxes.'],
+            ['name' => $type === 'founder' ? 'founders' : 'extras', 'label' => $type === 'founder' ? 'Founder details' : $typeDef['extrasLabel'], 'type' => $type === 'founder' ? 'founders' : 'list', 'required' => true, 'hint' => $typeDef['hint']],
+        ];
+
+        $this->render('admin/content_form', [
+            'title' => ($customId > 0 ? 'Edit ' : 'Add ') . $typeDef['label'],
+            'layout' => 'admin',
+            'section' => ['label' => $typeDef['label'] . ' Section', 'fields' => $fields],
+            'item' => $item,
+            'isEdit' => $customId > 0,
+            'formAction' => BASE_URL . '/admin/pages/' . rawurlencode($pageKey) . '/custom-save?type=' . rawurlencode($type),
+            'backUrl' => BASE_URL . '/admin/pages/' . rawurlencode($pageKey),
+            'csrf' => Security::csrfToken(),
+        ]);
+    }
+
+    /**
+     * Validate + persist a custom section. When editing, $existing carries
+     * the current row (its id and section_key are preserved).
+     */
+    private function saveCustomSection(string $pageKey, ?array $existing = null): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token. Please try again.');
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+
+        // The section type is stored in `sub_content` (new: from the hidden
+        // field / query, edit: from the existing row so it can never drift).
+        if ($existing !== null) {
+            $type = (string) ($existing['sub_content'] ?? '');
+        } else {
+            $type = (string) ($_POST['section_type'] ?? ($_GET['type'] ?? 'custom'));
+        }
+        if (!isset(self::CUSTOM_SECTION_TYPES[$type])) { $type = 'custom'; }
+        $typeDef = self::CUSTOM_SECTION_TYPES[$type];
+
+        $heading = Security::sanitizeText((string) ($_POST['heading'] ?? ''));
+        $errors = [];
+        if ($heading === '') {
+            $errors[] = 'Section title is required.';
+        }
+
+        $lines = [];
+        if ($type === 'founder') {
+            $names = (array) ($_POST['founder_name'] ?? []);
+            $roles = (array) ($_POST['founder_role'] ?? []);
+            $imageUrls = (array) ($_POST['founder_image_url'] ?? []);
+            $bios = (array) ($_POST['founder_bio'] ?? []);
+            $rowCount = max(count($names), count($roles), count($imageUrls), count($bios));
+            for ($i = 0; $i < $rowCount; $i++) {
+                $name = Security::sanitizeText((string) ($names[$i] ?? ''));
+                $role = Security::sanitizeText((string) ($roles[$i] ?? ''));
+                $image = Security::sanitizeText((string) ($imageUrls[$i] ?? ''));
+                $bio = Security::sanitizeText((string) ($bios[$i] ?? ''));
+                $uploadField = 'founder_image_' . $i;
+                if (!empty($_FILES[$uploadField]['name'])) {
+                    $image = $this->handleImageUpload($uploadField, $pageKey, '/admin/pages/' . $pageKey . '/custom-new?type=founder');
+                }
+                if ($name === '' && $role === '' && $image === '' && $bio === '') {
+                    continue;
+                }
+                $lines[] = implode('|', [$name, $role, $image, $bio]);
+            }
+        } else {
+            $lines = preg_split('/\r\n|\r|\n/', (string) ($_POST['extras'] ?? ''));
+            $lines = array_map('trim', $lines ?: []);
+            $lines = array_values(array_filter($lines, static fn (string $l): bool => $l !== ''));
+        }
+        if ($lines === []) {
+            $errors[] = 'At least one ' . strtolower($typeDef['extrasLabel'] === 'Boxes' ? 'box' : rtrim(strtolower($typeDef['extrasLabel']), 's')) . ' is required.';
+        }
+
+        if ($errors !== []) {
+            $this->setFlash('danger', implode(' ', $errors));
+            $this->redirect($existing !== null
+                ? '/admin/pages/' . $pageKey . '/custom-' . (int) $existing['id'] . '/edit'
+                : '/admin/pages/' . $pageKey . '/custom-new?type=' . rawurlencode($type));
+            return;
+        }
+
+        $data = [
+            'page_key' => $pageKey,
+            'section_key' => $existing !== null
+                ? (string) $existing['section_key']
+                : 'custom-' . date('YmdHis'),
+            'heading' => $heading,
+            'kicker' => Security::sanitizeText((string) ($_POST['kicker'] ?? '')),
+            'content' => Security::sanitizeText((string) ($_POST['content'] ?? '')),
+            'sub_content' => $type,
+            'extras' => json_encode($lines, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ];
+        if ($existing !== null) {
+            $data['id'] = (int) $existing['id'];
+        }
+
+        if (PageSectionModel::save($data)) {
+            $this->setFlash('success', $existing !== null ? 'Section updated.' : $typeDef['label'] . ' section added to the page.');
+        } else {
+            $errorDetail = PageSectionModel::lastError();
+            $msg = 'Could not save.';
+            if ($errorDetail !== '') { $msg .= ' ' . $errorDetail; }
+            $this->setFlash('danger', $msg);
+        }
+
+        $this->redirect('/admin/pages/' . $pageKey);
+    }
+
+    /**
+     * Delete a custom section row entirely.
+     */
+    private function deleteCustomSection(string $pageKey, array $existing): void
+    {
+        if (!$this->requireValidCsrf()) {
+            $this->setFlash('danger', 'Invalid security token.');
+            $this->redirect('/admin/pages/' . $pageKey);
+            return;
+        }
+
+        if (PageSectionModel::delete((int) $existing['id'])) {
+            $this->setFlash('success', 'Section "' . (string) $existing['heading'] . '" deleted.');
+        } else {
+            $this->setFlash('danger', 'Could not delete that section.');
         }
 
         $this->redirect('/admin/pages/' . $pageKey);

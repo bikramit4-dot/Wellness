@@ -4,7 +4,10 @@
         <h1>Edit Pages</h1>
         <p class="admin-head-note">Every public page is listed here with its sections separated. Open a page, then edit each section individually — headings, text, photos, buttons and more.</p>
     </div>
-    <a class="btn btn-outline btn-sm" href="<?= BASE_URL ?>/">View Site</a>
+    <div class="button-row">
+        <a class="btn btn-outline btn-sm" href="<?= BASE_URL ?>/admin">&larr; Back to dashboard</a>
+        <a class="btn btn-outline btn-sm" href="<?= BASE_URL ?>/">View Site</a>
+    </div>
 </div>
 
 <div class="content-grid">

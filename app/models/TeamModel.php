@@ -25,6 +25,7 @@ class TeamModel
                     'id' => (int) $r['id'],
                     'name' => (string) $r['name'],
                     'role' => (string) ($r['role'] ?? ''),
+                    'image' => (string) ($r['image'] ?? ''),
                     'initials' => (string) ($r['initials'] ?? ''),
                     'avatar' => (string) ($r['avatar'] ?? 'a1'),
                     'sort_order' => (int) ($r['sort_order'] ?? 0),
