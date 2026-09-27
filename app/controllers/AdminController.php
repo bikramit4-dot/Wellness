@@ -336,28 +336,15 @@ class AdminController extends Controller
                     ['name' => 'heading', 'label' => 'Page title', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Intro', 'type' => 'textarea'],
                 ]],
-                'founder' => ['label' => '01 · Founder', 'fields' => [
-                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
-                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                    ['name' => 'sub_content', 'label' => 'First founder — name + role', 'type' => 'text', 'hint' => 'Format: Name | Role'],
-                    ['name' => 'content', 'label' => 'First founder — bio', 'type' => 'textarea'],
-                    ['name' => 'image', 'label' => 'First founder — photo', 'type' => 'image'],
-                    ['name' => 'extras', 'label' => 'More founders', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL | Short bio — photo and bio optional. Leave empty for a single founder.'],
-                ]],
-                'approach' => ['label' => '02 · Our Approach', 'fields' => [
+                'aboutus' => ['label' => '01 · About Us', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                    ['name' => 'sub_content', 'label' => 'Photo badge', 'type' => 'text', 'hint' => 'Format: Title | Text — shown over the photo. Leave empty to hide the badge.'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
-                    ['name' => 'extras', 'label' => 'Approach items', 'type' => 'list', 'hint' => 'One per line, format: Title | Description | icon | image URL — each becomes a clickable box that opens the details.'],
+                    ['name' => 'extras', 'label' => 'Check list', 'type' => 'list'],
                 ]],
-                'doctors' => ['label' => '03 · Our Doctors', 'fields' => [
-                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
-                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
-                    ['name' => 'extras', 'label' => 'Doctors', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL — e.g. Dr. Ram Thapa | Senior Physiotherapist | /wellness/public/uploads/photos/dr-ram.jpg. Photo optional (initials shown).'],
-                ]],
-                'mission' => ['label' => '04 · Our Mission', 'fields' => [
+                'mission' => ['label' => '02 · Our Mission', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
@@ -365,17 +352,40 @@ class AdminController extends Controller
                     ['name' => 'sub_content', 'label' => 'Card title', 'type' => 'text'],
                     ['name' => 'extras', 'label' => 'Commitments list', 'type' => 'list'],
                 ]],
-                'group' => ['label' => '05 · Our Group', 'fields' => [
+                'vision' => ['label' => '03 · Our Vision', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Narrative intro', 'type' => 'textarea'],
+                    ['name' => 'sub_content', 'label' => 'Quote over photo', 'type' => 'text', 'hint' => 'Short quote shown on the photo. Leave empty to hide it.'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'Vision points', 'type' => 'list', 'hint' => 'One per line, format: Title | Text | icon — each becomes a highlighted story beat.'],
+                ]],
+                'approach' => ['label' => '04 · Our Core Values', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Paragraph', 'type' => 'textarea'],
+                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'Core values', 'type' => 'list', 'hint' => 'One per line, format: Title | Description | icon | image URL — each becomes a clickable box that opens the details.'],
+                ]],
+                'founder' => ['label' => '05 · Our Founders', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'sub_content', 'label' => 'First founder — name + role', 'type' => 'text', 'hint' => 'Format: Name | Role'],
+                    ['name' => 'content', 'label' => 'First founder — bio', 'type' => 'textarea'],
+                    ['name' => 'image', 'label' => 'First founder — photo', 'type' => 'image'],
+                    ['name' => 'extras', 'label' => 'More founders', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL | Short bio — photo and bio optional. Leave empty for a single founder.'],
+                ]],
+                'doctors' => ['label' => '06 · Our Doctors', 'fields' => [
+                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
+                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
+                    ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
+                    ['name' => 'extras', 'label' => 'Doctors', 'type' => 'list', 'hint' => 'One per line, format: Name | Role | Photo URL — e.g. Dr. Ram Thapa | Senior Physiotherapist | /wellness/public/uploads/photos/dr-ram.jpg. Photo optional (initials shown).'],
+                ]],
+                'group' => ['label' => '07 · Our Team', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
                     ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
                     ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
                     ['name' => 'content', 'label' => 'Lede', 'type' => 'textarea'],
-                ]],
-                'vision' => ['label' => '06 · Our Vision', 'fields' => [
-                    ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],
-                    ['name' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                    ['name' => 'image', 'label' => 'Photo', 'type' => 'image'],
-                    ['name' => 'extras', 'label' => 'Card', 'type' => 'list', 'hint' => 'One line, format: Title | Text | icon'],
                 ]],
                 'cta' => ['label' => 'CTA Banner', 'fields' => [
                     ['name' => 'kicker', 'label' => 'Kicker', 'type' => 'text'],

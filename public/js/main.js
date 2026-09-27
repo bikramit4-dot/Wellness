@@ -854,6 +854,103 @@ document.addEventListener('click', function (e) {
 
     }
 
+    /* ---------- About page founder cards: inline bio expand/collapse ---------- */
+    (function () {
+        var toggles = document.querySelectorAll('[data-bio-toggle]');
+        if (toggles.length === 0) return;
+
+        var DURATION = 320; // ms — must match the height transition set below
+
+        function clearTimer(panel) {
+            if (panel._bioTimer) { clearTimeout(panel._bioTimer); panel._bioTimer = null; }
+        }
+
+        /* After the height animation ends: fully open → height auto + overflow
+           visible; fully closed → hidden again. Overflow is ALWAYS reset here,
+           so a stalled transition can never leave text overlapping the page. */
+        function finish(panel) {
+            clearTimer(panel);
+            if (panel.getAttribute('data-open') === '1') {
+                panel.style.transition = '';
+                panel.style.overflow = '';
+                panel.style.height = 'auto';
+            } else {
+                panel.hidden = true;
+                panel.style.transition = '';
+                panel.style.overflow = '';
+                panel.style.height = '';
+            }
+        }
+
+        function setOpen(panel, open) {
+            var inner = panel.querySelector('.founder-card-more-inner');
+            if (!inner) return;
+            clearTimer(panel);
+
+            if (open) {
+                panel.hidden = false;
+                panel.style.overflow = 'hidden';
+                panel.style.height = '0px';
+                void panel.offsetHeight; // reflow so the transition starts from 0
+                panel.style.transition = 'height ' + DURATION + 'ms ease';
+                panel.style.height = inner.offsetHeight + 'px';
+                panel.setAttribute('data-open', '1');
+            } else {
+                // Animate from the CURRENT rendered height (the panel may be at
+                // height:auto after opening — animating straight from auto to 0
+                // never runs, which previously left the text overlapping).
+                panel.style.overflow = 'hidden';
+                panel.style.height = panel.scrollHeight + 'px';
+                void panel.offsetHeight; // reflow at the measured height
+                panel.style.transition = 'height ' + DURATION + 'ms ease';
+                panel.style.height = '0px';
+                panel.removeAttribute('data-open');
+            }
+            // Fallback in case transitionend never fires (e.g. reduced motion)
+            panel._bioTimer = setTimeout(function () { finish(panel); }, DURATION + 80);
+        }
+
+        toggles.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var panel = document.querySelector(btn.getAttribute('data-bio-toggle'));
+                if (!panel) return;
+                var opening = btn.getAttribute('aria-expanded') !== 'true';
+
+                // Keep every trigger of the SAME panel in sync
+                toggles.forEach(function (other) {
+                    if (other.getAttribute('data-bio-toggle') === btn.getAttribute('data-bio-toggle')) {
+                        other.setAttribute('aria-expanded', opening ? 'true' : 'false');
+                    }
+                });
+                // Close any other open founder panel (one open at a time)
+                document.querySelectorAll('.founder-card-more').forEach(function (otherPanel) {
+                    if (otherPanel !== panel && otherPanel.getAttribute('data-open') === '1') {
+                        setOpen(otherPanel, false);
+                    }
+                });
+
+                setOpen(panel, opening);
+            });
+        });
+
+        document.querySelectorAll('.founder-card-more').forEach(function (panel) {
+            panel.addEventListener('transitionend', function (e) {
+                if (e.propertyName === 'height') finish(panel);
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            document.querySelectorAll('.founder-card-more').forEach(function (panel) {
+                if (panel.hidden || panel.getAttribute('data-open') !== '1') return;
+                document.querySelectorAll('[data-bio-toggle][aria-expanded="true"]').forEach(function (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                });
+                setOpen(panel, false);
+            });
+        });
+    })();
+
     /* ---------- About page info-box modals ---------- */
     (function () {
         var modals = document.querySelectorAll('.info-modal');

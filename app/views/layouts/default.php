@@ -90,12 +90,12 @@ if ($_navCustom === []) {
             <a class="nav-link dropdown-toggle" href="<?= BASE_URL ?>/about" aria-haspopup="true" aria-expanded="false">About <svg class="icon icon-sm"><use href="#icon-chevron"/></svg></a>
             <div class="dropdown-menu">
                 <a href="<?= BASE_URL ?>/about">About Us</a>
-                <a href="<?= BASE_URL ?>/about#founder">Founder</a>
-                <a href="<?= BASE_URL ?>/about#approach">Our Approach</a>
-                <a href="<?= BASE_URL ?>/about#doctors">Our Doctors</a>
                 <a href="<?= BASE_URL ?>/about#mission">Our Mission</a>
-                <a href="<?= BASE_URL ?>/about#group">Our Group</a>
                 <a href="<?= BASE_URL ?>/about#vision">Our Vision</a>
+                <a href="<?= BASE_URL ?>/about#approach">Our Core Values</a>
+                <a href="<?= BASE_URL ?>/about#founder">Our Founders</a>
+                <a href="<?= BASE_URL ?>/about#doctors">Our Doctors</a>
+                <a href="<?= BASE_URL ?>/about#group">Our Team</a>
             </div>
         </div>
         <?php foreach ($_navGroups as [$_navPath, $_navLabel]): ?>
