@@ -128,9 +128,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); color: var(--forest-900); lin
 /* ---------- Utility Top Bar ---------- */
 .topbar { background: var(--forest-950); color: var(--sage-200); font-size: .82rem; padding-top: env(safe-area-inset-top, 0px); }
 .topbar .container { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .55rem 0; flex-wrap: wrap; }
-.topbar a { color: var(--sage-100); display: inline-flex; align-items: center; gap: .4rem; }
+.topbar a { color: var(--sage-100); display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
 .topbar a:hover { color: var(--apricot); }
-.topbar-info { display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+.topbar-info { display: flex; align-items: center; gap: 1.4rem; flex-wrap: nowrap; }
 .topbar-hours { display: inline-flex; align-items: center; gap: .4rem; }
 
 /* ---------- Header / Navigation ---------- */
@@ -1358,6 +1358,9 @@ input:focus, select:focus, textarea:focus {
     .hero h1 { white-space: normal; font-size: clamp(2rem, 6vw, 2.6rem); }
     .hero-sub { max-width: 100%; }
     .topbar-hours { display: none; }
+    /* Keep phone + email together on one line when the hours are hidden */
+    .topbar .container { flex-wrap: nowrap; }
+    .topbar-info { gap: 1rem; }
     /* Inputs smaller than 16px make iOS Safari auto-zoom on tap */
     input, select, textarea { font-size: 16px; }
     /* Admin topbar: allow the brand + actions to wrap on tablets */
